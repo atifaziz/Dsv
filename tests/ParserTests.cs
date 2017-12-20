@@ -34,10 +34,10 @@ namespace Yax.Tests
             {
                 foreach (var fields in lines.ParseXsv(delimiter, quote, escape, newline))
                 {
-                    Assert.True(row.MoveNext());
+                    Assert.True(row.MoveNext(), "Source has too many rows.");
                     Assert.Equal(row.Current, fields);
                 }
-                Assert.False(row.MoveNext());
+                Assert.False(row.MoveNext(), "Source has too few rows.");
             }
         }
 
