@@ -46,6 +46,87 @@ Suppose:
 ]
 ```
 
+## Empty
+
+Suppose:
+
+```
+```
+
+Expected:
+
+```
+[]
+```
+
+## Blank Rows
+
+### At the Beginning
+
+Suppose:
+
+```
+
+
+1,2,3
+4,5,6
+```
+
+Expected:
+
+```
+[
+    [],
+    [],
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+]
+```
+
+### In the Middle
+
+Suppose:
+
+```
+1,2,3
+
+
+4,5,6
+```
+
+Expected:
+
+```
+[
+    ["1", "2", "3"],
+    [],
+    [],
+    ["4", "5", "6"],
+]
+```
+
+### In the Middle
+
+Suppose:
+
+```
+1,2,3
+4,5,6
+
+
+```
+
+Expected:
+
+```
+[
+    ["1", "2", "3"],
+    ["4", "5", "6"],
+    [],
+    [],
+]
+```
+
 ## Uneven Rows
 
 ### Unquoted Fields
