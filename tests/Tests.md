@@ -72,3 +72,32 @@ Suppose:
     ["7", "8", "9"],
 ]
 ```
+
+### Quoted Fields
+
+Suppose:
+
+- delimiter is `,`
+- quote is `"`
+- escape is `"`
+- newline is `\n`
+
+```
+"foo",bar,baz
+"foo,bar",baz
+"foo,bar,baz"
+foo,"bar,baz"
+foo,bar,"baz"
+"foo","bar","baz"
+```
+
+```
+[
+    ["foo", "bar", "baz"],
+    ["foo,bar", "baz"],
+    ["foo,bar,baz"],
+    ["foo", "bar,baz"],
+    ["foo", "bar", "baz"],
+    ["foo", "bar", "baz"],
+]
+```

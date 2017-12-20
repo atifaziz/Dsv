@@ -145,7 +145,7 @@ namespace Yax
                 }
                 if (state != InQuotedField)
                 {
-                    if (state == InField)
+                    if (state == InField || state == QuoteQuote)
                         fields.Add(sb.ToString());
                     sb.Length = 0;
                     yield return fields.ToArray();
