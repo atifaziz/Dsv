@@ -73,7 +73,11 @@ namespace Yax
                             {
                                 state = InQuotedField;
                             }
-                            else if (ch != delimiter)
+                            else if (ch == delimiter)
+                            {
+                                fields.Add(string.Empty);
+                            }
+                            else
                             {
                                 sb.Append(ch);
                                 state = InField;
@@ -145,9 +149,15 @@ namespace Yax
                 }
                 if (state != InQuotedField)
                 {
-                    if (state == InField || state == QuoteQuote)
+                    if (state == AtFieldStart)
+                    {
+                        fields.Add(string.Empty);
+                    }
+                    else if (state == InField || state == QuoteQuote)
+                    {
                         fields.Add(sb.ToString());
-                    sb.Length = 0;
+                        sb.Length = 0;
+                    }
                     yield return fields.ToArray();
                     fields = new List<string>();
                     state = AtFieldStart;
