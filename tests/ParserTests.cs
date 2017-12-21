@@ -76,7 +76,7 @@ namespace Yax.Tests
                 select e.Fold((s, inp, _, exp) => new { Suppositions = string.Join(Environment.NewLine, s), Input = inp, Expected = exp }) into e
                 select
                     config
-                        .Select(p => Regex.Match(e.Suppositions, $@"(?<=\b{Regex.Escape(p)} +(is|=) +`)[^`]+(?=`)", RegexOptions.ExplicitCapture))
+                        .Select(p => Regex.Match(e.Suppositions, $@"(?<=\b{Regex.Escape(p)}( +is| *[=:]) *`)[^`]+(?=`)", RegexOptions.ExplicitCapture))
                         .Select(m => m.Success ? m.Value : null)
                         .Fold((d, q, esc, nl, blanks) => new
                         {
