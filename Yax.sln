@@ -11,6 +11,12 @@ ProjectSection(SolutionItems) = preProject
 	.editorconfig = .editorconfig
 	global.json = global.json
 	COPYING.txt = COPYING.txt
+	test.sh = test.sh
+	build.sh = build.sh
+	pack.sh = pack.sh
+	test.cmd = test.cmd
+	build.cmd = build.cmd
+	pack.cmd = pack.cmd
 EndProjectSection
 EndProject
 Global
