@@ -4,4 +4,5 @@ namespace Yax
     public partial class Format {}
     public partial class LineReader {}
     public partial struct TextRow {}
+    static partial class Extensions {}
 }
