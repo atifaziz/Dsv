@@ -82,7 +82,7 @@ namespace Yax.Tests
                                                                         : throw new FormatException())
                                       : "\n",
                             e.Input,
-                            Expected = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(null, e.Expected))
+                            Expected = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected))
                         })
                 into e
                 select (e.Delimiter, e.Quote, e.Escape, e.NewLine, e.Input, e.Expected);
