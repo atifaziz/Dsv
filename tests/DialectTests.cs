@@ -15,6 +15,7 @@
 
 namespace Yax.Tests
 {
+    using System;
     using Xunit;
 
     public sealed class DialectTests
@@ -57,6 +58,10 @@ namespace Yax.Tests
             [Fact]
             public void NewLineIsLineFeed() =>
                 Assert.Equal("\n", Dialect.Csv.NewLine);
+
+            [Fact]
+            public void RowFilterIsNull() =>
+                Assert.Null(Dialect.Csv.RowFilter);
         }
 
         public sealed class WithDelimiter
@@ -76,6 +81,7 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, dialect.Quote);
                 Assert.Equal(@base.Escape, dialect.Escape);
                 Assert.Equal(@base.NewLine, dialect.NewLine);
+                Assert.Equal(@base.RowFilter, dialect.RowFilter);
             }
         }
 
@@ -96,6 +102,7 @@ namespace Yax.Tests
                 Assert.Equal(quote, dialect.Quote);
                 Assert.Equal(@base.Escape, dialect.Escape);
                 Assert.Equal(@base.NewLine, dialect.NewLine);
+                Assert.Equal(@base.RowFilter, dialect.RowFilter);
             }
         }
 
@@ -116,6 +123,7 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, dialect.Quote);
                 Assert.Equal(escape, dialect.Escape);
                 Assert.Equal(@base.NewLine, dialect.NewLine);
+                Assert.Equal(@base.RowFilter, dialect.RowFilter);
             }
         }
 
@@ -136,6 +144,45 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, dialect.Quote);
                 Assert.Equal(@base.Escape, dialect.Escape);
                 Assert.Equal(crlf, dialect.NewLine);
+                Assert.Equal(@base.RowFilter, dialect.RowFilter);
+            }
+        }
+
+        public sealed class WithRowFilter
+        {
+            [Fact]
+            public void SameRowFilterSameDialect() =>
+                Assert.Same(Dialect.Csv, Dialect.Csv.WithRowFilter(null));
+
+            [Fact]
+            public void ReturnsNewDialectWithChangedRowFilter()
+            {
+                var @base = Dialect.Csv;
+                var filter = new Func<string, bool>(_ => true);
+                var dialect = @base.WithRowFilter(filter);
+                Assert.NotSame(@base, dialect);
+                Assert.Equal(@base.Delimiter, dialect.Delimiter);
+                Assert.Equal(@base.Quote, dialect.Quote);
+                Assert.Equal(@base.Escape, dialect.Escape);
+                Assert.Equal(@base.NewLine, dialect.NewLine);
+                Assert.Equal(filter, dialect.RowFilter);
+            }
+        }
+
+        public sealed class OrWithRowFilter
+        {
+            [Fact]
+            public void ReturnsNewDialectWithChangedRowFilter()
+            {
+                var @base = Dialect.Csv;
+                var dialect = @base.WithRowFilter(s => s == "foo")
+                                   .OrWithRowFilter(s => s == "baz");
+                Assert.NotSame(@base, dialect);
+                Assert.False(dialect.RowFilter(null));
+                Assert.False(dialect.RowFilter(string.Empty));
+                Assert.True(dialect.RowFilter("foo"));
+                Assert.False(dialect.RowFilter("bar"));
+                Assert.True(dialect.RowFilter("baz"));
             }
         }
     }

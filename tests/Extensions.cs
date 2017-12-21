@@ -23,13 +23,13 @@ namespace Yax.Tests
 
     static class Extensions
     {
-        public static TheoryData<T1, T2, T3, T4, T5, T6> ToTheoryData<T1, T2, T3, T4, T5, T6>(
-            this IEnumerable<(T1, T2, T3, T4, T5, T6)> rows)
+        public static TheoryData<T1, T2, T3, T4, T5, T6, T7> ToTheoryData<T1, T2, T3, T4, T5, T6, T7>(
+            this IEnumerable<(T1, T2, T3, T4, T5, T6, T7)> rows)
         {
             if (rows == null) throw new ArgumentNullException(nameof(rows));
-            var data = new TheoryData<T1, T2, T3, T4, T5, T6>();
+            var data = new TheoryData<T1, T2, T3, T4, T5, T6, T7>();
             foreach (var row in rows)
-                data.Add(row.Item1, row.Item2, row.Item3, row.Item4, row.Item5, row.Item6);
+                data.Add(row.Item1, row.Item2, row.Item3, row.Item4, row.Item5, row.Item6, row.Item7);
             return data;
         }
 

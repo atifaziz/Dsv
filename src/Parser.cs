@@ -18,6 +18,7 @@ namespace Yax
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Text;
 
     sealed partial class Dialect
@@ -29,28 +30,44 @@ namespace Yax
         public char   Escape    { get; }
         public string NewLine   { get; }
 
-        public Dialect(char delimiter) :
-            this(delimiter, '\"', '\"', "\n") { }
+        public Func<string, bool> RowFilter { get; }
 
-        Dialect(char delimiter, char quote, char escape, string newLine)
+        public Dialect(char delimiter) :
+            this(delimiter, '\"', '\"', "\n", null) { }
+
+        Dialect(char delimiter, char quote, char escape, string newLine,
+                Func<string, bool> rowFilter)
         {
-            Delimiter = delimiter;
-            Quote     = quote;
-            Escape    = escape;
-            NewLine   = newLine;
+            Delimiter    = delimiter;
+            Quote        = quote;
+            Escape       = escape;
+            NewLine      = newLine;
+            RowFilter = rowFilter;
         }
 
         public Dialect WithDelimiter(char value) =>
-            value == Delimiter ? this : new Dialect(value, Quote, Escape, NewLine);
+            value == Delimiter ? this : new Dialect(value, Quote, Escape, NewLine, RowFilter);
 
         public Dialect WithQuote(char value) =>
-            value == Quote ? this : new Dialect(Delimiter, value, Escape, NewLine);
+            value == Quote ? this : new Dialect(Delimiter, value, Escape, NewLine, RowFilter);
 
         public Dialect WithEscape(char value) =>
-            value == Escape ? this : new Dialect(Delimiter, Quote, value, NewLine);
+            value == Escape ? this : new Dialect(Delimiter, Quote, value, NewLine, RowFilter);
 
         public Dialect WithNewLine(string value) =>
-            value == NewLine ? this : new Dialect(Delimiter, Quote, Escape, value);
+            value == NewLine ? this : new Dialect(Delimiter, Quote, Escape, value, RowFilter);
+
+        public Dialect WithRowFilter(Func<string, bool> value) =>
+            value == RowFilter ? this : new Dialect(Delimiter, Quote, Escape, NewLine, value);
+
+        public Dialect OrWithRowFilter(Func<string, bool> value) =>
+            value == RowFilter ? this : new Dialect(Delimiter, Quote, Escape, NewLine,
+                                                    RowFilter == null
+                                                    ? value
+                                                    : (s => RowFilter(s) || value(s)));
+
+        public Dialect SkipBlankRows() =>
+            OrWithRowFilter(string.IsNullOrWhiteSpace);
     }
 
     partial struct TextRow : IList<string>, IReadOnlyList<string>
@@ -125,13 +142,15 @@ namespace Yax
             ParseXsv(lines, dialect.Delimiter,
                             dialect.Quote,
                             dialect.Escape,
-                            dialect.NewLine);
+                            dialect.NewLine,
+                            dialect.RowFilter ?? (_ => false));
 
         static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
                                               char delimiter,
                                               char quote,
                                               char escape,
-                                              string nl)
+                                              string nl,
+                                              Func<string, bool> rowFilter)
         {
             var ln = 0;
             var col = 0;
@@ -141,6 +160,8 @@ namespace Yax
 
             foreach (var line in lines)
             {
+                if (state != State.InQuotedField && rowFilter(line))
+                    continue;
                 ln++;
                 col = 0;
                 foreach (var ch in line)

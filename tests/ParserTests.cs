@@ -27,7 +27,7 @@ namespace Yax.Tests
     {
         [Theory]
         [MemberData(nameof(GetData))]
-        public void Parse(char delimiter, char quote, char escape, string newline,
+        public void Parse(char delimiter, char quote, char escape, string newline, bool skipBlanks,
                           IEnumerable<string> lines, IEnumerable<string[]> rows)
         {
             using (var row = rows.GetEnumerator())
@@ -35,6 +35,9 @@ namespace Yax.Tests
                 var dialect = new Dialect(delimiter).WithQuote(quote)
                                                     .WithEscape(escape)
                                                     .WithNewLine(newline);
+
+                if (skipBlanks)
+                    dialect = dialect.SkipBlankRows();
 
                 foreach (var fields in lines.ParseXsv(dialect))
                 {
@@ -45,11 +48,11 @@ namespace Yax.Tests
             }
         }
 
-        public static TheoryData<char, char, char, string, IEnumerable<string>, IEnumerable<string[]>> GetData()
+        public static TheoryData<char, char, char, string, bool, IEnumerable<string>, IEnumerable<string[]>> GetData()
         {
             var type = MethodBase.GetCurrentMethod().DeclaringType;
 
-            var config = new[] { "delimiter", "quote", "escape", "newline" };
+            var config = new[] { "delimiter", "quote", "escape", "newline", "blanks" };
 
             var data =
                 from q in new[]
@@ -75,21 +78,22 @@ namespace Yax.Tests
                     config
                         .Select(p => Regex.Match(e.Suppositions, $@"(?<=\b{Regex.Escape(p)} +(is|=) +`)[^`]+(?=`)", RegexOptions.ExplicitCapture))
                         .Select(m => m.Success ? m.Value : null)
-                        .Fold((d, q, esc, nl) => new
+                        .Fold((d, q, esc, nl, blanks) => new
                         {
-                            Delimiter = d?[0] ?? ',',
-                            Quote     = q?[0] ?? '"',
-                            Escape    = esc?[0] ?? '"',
-                            NewLine   = nl != null
-                                      ? Regex.Replace(nl, @"\\[rn]", m => m.Value[1] == 'r' ? "\r"
-                                                                        : m.Value[1] == 'n' ? "\n"
-                                                                        : throw new FormatException())
-                                      : "\n",
+                            Delimiter  = d?[0] ?? ',',
+                            Quote      = q?[0] ?? '"',
+                            Escape     = esc?[0] ?? '"',
+                            NewLine    = nl != null
+                                       ? Regex.Replace(nl, @"\\[rn]", m => m.Value[1] == 'r' ? "\r"
+                                                                         : m.Value[1] == 'n' ? "\n"
+                                                                         : throw new FormatException())
+                                       : "\n",
+                            SkipBlanks = "skip".Equals(blanks, StringComparison.OrdinalIgnoreCase),
                             e.Input,
-                            Expected = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected))
+                            Expected   = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected))
                         })
                 into e
-                select (e.Delimiter, e.Quote, e.Escape, e.NewLine, e.Input, e.Expected);
+                select (e.Delimiter, e.Quote, e.Escape, e.NewLine, e.SkipBlanks, e.Input, e.Expected);
 
             return data.ToTheoryData();
         }
