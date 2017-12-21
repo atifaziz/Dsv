@@ -18,20 +18,19 @@ namespace Yax
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using static XsvParserState;
-
-    enum XsvParserState
-    {
-        AtFieldStart,
-        InQuotedField,
-        InField,
-        Escaping,
-        ExpectingDelimiter,
-        QuoteQuote, // when escape char is also quote char
-    }
 
     static partial class Parser
     {
+        enum State
+        {
+            AtFieldStart,
+            InQuotedField,
+            InField,
+            Escaping,
+            ExpectingDelimiter,
+            QuoteQuote, // when escape char is also quote char
+        }
+
         /// <summary>
         /// Parses CSV data from a sequnce of lines, allowing quoted
         /// fields and using two quotes to escape quote within a quoted
@@ -56,7 +55,7 @@ namespace Yax
             var col = 0;
             var sb = new StringBuilder();
             var fields = new List<string>();
-            var state = AtFieldStart;
+            var state = State.AtFieldStart;
 
             foreach (var line in lines)
             {
@@ -68,10 +67,10 @@ namespace Yax
                     reswitch:
                     switch (state)
                     {
-                        case AtFieldStart:
+                        case State.AtFieldStart:
                             if (ch == quote)
                             {
-                                state = InQuotedField;
+                                state = State.InQuotedField;
                             }
                             else if (ch == delimiter)
                             {
@@ -80,13 +79,13 @@ namespace Yax
                             else
                             {
                                 sb.Append(ch);
-                                state = InField;
+                                state = State.InField;
                             }
                             break;
-                        case InField:
+                        case State.InField:
                             if (ch == delimiter)
                             {
-                                state = AtFieldStart;
+                                state = State.AtFieldStart;
                                 fields.Add(sb.ToString());
                                 sb.Length = 0;
                             }
@@ -95,50 +94,50 @@ namespace Yax
                                 sb.Append(ch);
                             }
                             break;
-                        case ExpectingDelimiter:
+                        case State.ExpectingDelimiter:
                             if (char.IsWhiteSpace(ch))
                                 break;
                             if (ch != delimiter)
                                 throw new FormatException($"Missing delimiter (line #{ln}, col #{col}).");
-                            state = AtFieldStart;
+                            state = State.AtFieldStart;
                             break;
-                        case Escaping:
+                        case State.Escaping:
                             sb.Append(ch);
-                            state = InQuotedField;
+                            state = State.InQuotedField;
                             break;
-                        case QuoteQuote:
+                        case State.QuoteQuote:
                         {
                             if (ch == quote)
                             {
                                 sb.Append(ch);
-                                state = InQuotedField;
+                                state = State.InQuotedField;
                             }
                             else
                             {
-                                state = ExpectingDelimiter;
+                                state = State.ExpectingDelimiter;
                                 fields.Add(sb.ToString());
                                 sb.Length = 0;
                                 goto reswitch;
                             }
                             break;
                         }
-                        case InQuotedField:
+                        case State.InQuotedField:
                             if (ch == quote)
                             {
                                 if (quote == escape)
                                 {
-                                    state = QuoteQuote;
+                                    state = State.QuoteQuote;
                                 }
                                 else
                                 {
-                                    state = ExpectingDelimiter;
+                                    state = State.ExpectingDelimiter;
                                     fields.Add(sb.ToString());
                                     sb.Length = 0;
                                 }
                             }
                             else if (ch == escape)
                             {
-                                state = Escaping;
+                                state = State.Escaping;
                             }
                             else
                             {
@@ -147,20 +146,20 @@ namespace Yax
                             break;
                     }
                 }
-                if (state != InQuotedField)
+                if (state != State.InQuotedField)
                 {
-                    if (state == AtFieldStart)
+                    if (state == State.AtFieldStart)
                     {
                         fields.Add(string.Empty);
                     }
-                    else if (state == InField || state == QuoteQuote)
+                    else if (state == State.InField || state == State.QuoteQuote)
                     {
                         fields.Add(sb.ToString());
                         sb.Length = 0;
                     }
                     yield return fields.ToArray();
                     fields = new List<string>();
-                    state = AtFieldStart;
+                    state = State.AtFieldStart;
                 }
                 else
                 {
