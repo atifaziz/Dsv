@@ -222,3 +222,28 @@ Expected:
     ["Zeus Shannon", "fusce@example.com", "261-3752 Turpis. Rd.", "FG69 4CF"],
 ]
 ```
+
+## Quotes in Fields
+
+Suppose:
+
+- delimiter is `,`
+- quote is `"`
+- escape is `"`
+- newline is `\n`
+
+```
+"foo,""bar"",baz"
+"""foo"",bar,baz"
+"foo,bar,""baz"""
+```
+
+Expected:
+
+```
+[
+    ["foo,\"bar\",baz"],
+    ["\"foo\",bar,baz"],
+    ["foo,bar,\"baz\""],
+]
+```
