@@ -32,7 +32,11 @@ namespace Yax.Tests
         {
             using (var row = rows.GetEnumerator())
             {
-                foreach (var fields in lines.ParseXsv(delimiter, quote, escape, newline))
+                var dialect = new Dialect(delimiter).WithQuote(quote)
+                                                    .WithEscape(escape)
+                                                    .WithNewLine(newline);
+
+                foreach (var fields in lines.ParseXsv(dialect))
                 {
                     Assert.True(row.MoveNext(), "Source has too many rows.");
                     Assert.Equal(row.Current, fields);

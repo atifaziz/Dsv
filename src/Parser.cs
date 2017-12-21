@@ -19,6 +19,39 @@ namespace Yax
     using System.Collections.Generic;
     using System.Text;
 
+    sealed partial class Dialect
+    {
+        public static readonly Dialect Csv = new Dialect(',');
+
+        public char   Delimiter { get; }
+        public char   Quote     { get; }
+        public char   Escape    { get; }
+        public string NewLine   { get; }
+
+        public Dialect(char delimiter) :
+            this(delimiter, '\"', '\"', "\n") { }
+
+        Dialect(char delimiter, char quote, char escape, string newLine)
+        {
+            Delimiter = delimiter;
+            Quote     = quote;
+            Escape    = escape;
+            NewLine   = newLine;
+        }
+
+        public Dialect WithDelimiter(char value) =>
+            value == Delimiter ? this : new Dialect(value, Quote, Escape, NewLine);
+
+        public Dialect WithQuote(char value) =>
+            value == Quote ? this : new Dialect(Delimiter, value, Escape, NewLine);
+
+        public Dialect WithEscape(char value) =>
+            value == Escape ? this : new Dialect(Delimiter, Quote, value, NewLine);
+
+        public Dialect WithNewLine(string value) =>
+            value == NewLine ? this : new Dialect(Delimiter, Quote, Escape, value);
+    }
+
     static partial class Parser
     {
         enum State
@@ -38,7 +71,7 @@ namespace Yax
         /// </summary>
 
         public static IEnumerable<string[]> ParseCsv(this IEnumerable<string> lines) =>
-            lines.ParseXsv(',', '"', '"', "\n");
+            lines.ParseXsv(Dialect.Csv);
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
@@ -46,10 +79,17 @@ namespace Yax
         /// </summary>
 
         public static IEnumerable<string[]> ParseXsv(this IEnumerable<string> lines,
-                                                     char delimiter,
-                                                     char quote,
-                                                     char escape,
-                                                     string nl)
+            Dialect dialect) =>
+            ParseXsv(lines, dialect.Delimiter,
+                            dialect.Quote,
+                            dialect.Escape,
+                            dialect.NewLine);
+
+        static IEnumerable<string[]> ParseXsv(IEnumerable<string> lines,
+                                              char delimiter,
+                                              char quote,
+                                              char escape,
+                                              string nl)
         {
             var ln = 0;
             var col = 0;
