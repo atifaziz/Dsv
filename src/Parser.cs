@@ -16,6 +16,7 @@
 namespace Yax
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Text;
 
@@ -52,6 +53,47 @@ namespace Yax
             value == NewLine ? this : new Dialect(Delimiter, Quote, Escape, value);
     }
 
+    partial struct TextRow : IList<string>, IReadOnlyList<string>
+    {
+        readonly string[] _fields;
+
+        internal TextRow(string[] fields) =>
+            _fields = fields ?? throw new ArgumentNullException(nameof(fields));
+
+        public string[] Fields => _fields ?? Array.Empty<string>();
+
+        public string this[int index] => Fields[index];
+
+        string IList<string>.this[int index]
+        {
+            get => this[index];
+            set => throw ReadOnlyError();
+        }
+
+        public IEnumerator<string> GetEnumerator() =>
+            ((IEnumerable<string>) Fields).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() =>
+            GetEnumerator();
+
+        public int IndexOf(string item) => Array.IndexOf(Fields, item);
+        public int FindIndex(Predicate<string> predicate) => Array.FindIndex(Fields, predicate);
+        public bool Contains(string item) => IndexOf(item) >= 0;
+        public void CopyTo(string[] array, int arrayIndex) => Fields.CopyTo(array, arrayIndex);
+
+        public int Count => Fields?.Length ?? 0;
+        bool ICollection<string>.IsReadOnly => true;
+
+        static Exception ReadOnlyError() =>
+            new InvalidOperationException("Collection is read-only.");
+
+        void ICollection<string>.Add(string item)         => throw ReadOnlyError();
+        void ICollection<string>.Clear()                  => throw ReadOnlyError();
+        bool ICollection<string>.Remove(string item)      => throw ReadOnlyError();
+        void IList<string>.Insert(int index, string item) => throw ReadOnlyError();
+        void IList<string>.RemoveAt(int index)            => throw ReadOnlyError();
+    }
+
     static partial class Parser
     {
         enum State
@@ -70,7 +112,7 @@ namespace Yax
         /// field.
         /// </summary>
 
-        public static IEnumerable<string[]> ParseCsv(this IEnumerable<string> lines) =>
+        public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines) =>
             lines.ParseXsv(Dialect.Csv);
 
         /// <summary>
@@ -78,14 +120,14 @@ namespace Yax
         /// of lines.
         /// </summary>
 
-        public static IEnumerable<string[]> ParseXsv(this IEnumerable<string> lines,
+        public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
             Dialect dialect) =>
             ParseXsv(lines, dialect.Delimiter,
                             dialect.Quote,
                             dialect.Escape,
                             dialect.NewLine);
 
-        static IEnumerable<string[]> ParseXsv(IEnumerable<string> lines,
+        static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
                                               char delimiter,
                                               char quote,
                                               char escape,
@@ -197,7 +239,7 @@ namespace Yax
                         fields.Add(sb.ToString());
                         sb.Length = 0;
                     }
-                    yield return fields.ToArray();
+                    yield return new TextRow(fields.ToArray());
                     fields = new List<string>();
                     state = State.AtFieldStart;
                 }
