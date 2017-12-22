@@ -20,9 +20,9 @@ namespace Yax
     using System.Collections.Generic;
     using System.Text;
 
-    sealed partial class Dialect
+    sealed partial class Format
     {
-        public static readonly Dialect Csv = new Dialect(',');
+        public static readonly Format Csv = new Format(',');
 
         public char   Delimiter { get; }
         public char?  Quote     { get; }
@@ -31,11 +31,11 @@ namespace Yax
 
         public Func<string, bool> RowFilter { get; }
 
-        public Dialect(char delimiter) :
+        public Format(char delimiter) :
             this(delimiter, '\"', '\"', "\n", null) { }
 
-        Dialect(char delimiter, char? quote, char escape, string newLine,
-                Func<string, bool> rowFilter)
+        Format(char delimiter, char? quote, char escape, string newLine,
+               Func<string, bool> rowFilter)
         {
             Delimiter    = delimiter;
             Quote        = quote;
@@ -44,28 +44,28 @@ namespace Yax
             RowFilter = rowFilter;
         }
 
-        public Dialect WithDelimiter(char value) =>
-            value == Delimiter ? this : new Dialect(value, Quote, Escape, NewLine, RowFilter);
+        public Format WithDelimiter(char value) =>
+            value == Delimiter ? this : new Format(value, Quote, Escape, NewLine, RowFilter);
 
-        public Dialect WithQuote(char? value) =>
-            value == Quote ? this : new Dialect(Delimiter, value, Escape, NewLine, RowFilter);
+        public Format WithQuote(char? value) =>
+            value == Quote ? this : new Format(Delimiter, value, Escape, NewLine, RowFilter);
 
-        public Dialect WithEscape(char value) =>
-            value == Escape ? this : new Dialect(Delimiter, Quote, value, NewLine, RowFilter);
+        public Format WithEscape(char value) =>
+            value == Escape ? this : new Format(Delimiter, Quote, value, NewLine, RowFilter);
 
-        public Dialect WithNewLine(string value) =>
-            value == NewLine ? this : new Dialect(Delimiter, Quote, Escape, value, RowFilter);
+        public Format WithNewLine(string value) =>
+            value == NewLine ? this : new Format(Delimiter, Quote, Escape, value, RowFilter);
 
-        public Dialect WithRowFilter(Func<string, bool> value) =>
-            value == RowFilter ? this : new Dialect(Delimiter, Quote, Escape, NewLine, value);
+        public Format WithRowFilter(Func<string, bool> value) =>
+            value == RowFilter ? this : new Format(Delimiter, Quote, Escape, NewLine, value);
 
-        public Dialect OrWithRowFilter(Func<string, bool> value) =>
-            value == RowFilter ? this : new Dialect(Delimiter, Quote, Escape, NewLine,
-                                                    RowFilter == null
-                                                    ? value
-                                                    : (s => RowFilter(s) || value(s)));
+        public Format OrWithRowFilter(Func<string, bool> value) =>
+            value == RowFilter ? this : new Format(Delimiter, Quote, Escape, NewLine,
+                                                   RowFilter == null
+                                                   ? value
+                                                   : (s => RowFilter(s) || value(s)));
 
-        public Dialect SkipBlankRows() =>
+        public Format SkipBlankRows() =>
             OrWithRowFilter(string.IsNullOrWhiteSpace);
     }
 
@@ -129,7 +129,7 @@ namespace Yax
         /// </summary>
 
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines) =>
-            lines.ParseXsv(Dialect.Csv);
+            lines.ParseXsv(Format.Csv);
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
@@ -137,12 +137,12 @@ namespace Yax
         /// </summary>
 
         public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
-            Dialect dialect) =>
-            ParseXsv(lines, dialect.Delimiter,
-                            dialect.Quote,
-                            dialect.Escape,
-                            dialect.NewLine,
-                            dialect.RowFilter ?? (_ => false));
+            Format format) =>
+            ParseXsv(lines, format.Delimiter,
+                            format.Quote,
+                            format.Escape,
+                            format.NewLine,
+                            format.RowFilter ?? (_ => false));
 
         static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
                                              char   delimiter,

@@ -32,18 +32,18 @@ namespace Yax.Tests
                           IEnumerable<string> lines, IEnumerable<string[]> rows,
                           Type errorType, string errorMessage)
         {
-            var dialect = new Dialect(delimiter).WithQuote(quote)
-                                                .WithEscape(escape)
-                                                .WithNewLine(newline);
+            var format = new Format(delimiter).WithQuote(quote)
+                                              .WithEscape(escape)
+                                              .WithNewLine(newline);
 
             if (skipBlanks)
-                dialect = dialect.SkipBlankRows();
+                format = format.SkipBlankRows();
 
             if (errorType == null)
             {
                 using (var row = rows.GetEnumerator())
                 {
-                    foreach (var fields in lines.ParseXsv(dialect))
+                    foreach (var fields in lines.ParseXsv(format))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
                         Assert.Equal(row.Current, fields);
@@ -54,7 +54,7 @@ namespace Yax.Tests
             }
             else
             {
-                var e = Assert.Throws(errorType, () => lines.ParseXsv(dialect).Consume());
+                var e = Assert.Throws(errorType, () => lines.ParseXsv(format).Consume());
                 Assert.Equal(errorMessage, e.Message);
             }
         }
