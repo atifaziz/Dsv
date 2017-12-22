@@ -47,6 +47,8 @@ namespace Yax
         public Format WithDelimiter(char value) =>
             value == Delimiter ? this : new Format(value, Quote, Escape, NewLine, RowFilter);
 
+        public Format Unquoted() => WithQuote(null);
+
         public Format WithQuote(char? value) =>
             value == Quote ? this : new Format(Delimiter, value, Escape, NewLine, RowFilter);
 

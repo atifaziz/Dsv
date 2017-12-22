@@ -185,5 +185,22 @@ namespace Yax.Tests
                 Assert.True(format.RowFilter("baz"));
             }
         }
+
+        public sealed class Unquoted
+        {
+            [Fact]
+            public void ReturnsSameFormatWhenAlreadyUnquoted()
+            {
+                var @base = Format.Csv.Unquoted();
+                Assert.Same(@base, @base.Unquoted());
+            }
+
+            [Fact]
+            public void ReturnsNewFormatWhenQuotedBefore()
+            {
+                var @base = Format.Csv;
+                Assert.NotSame(@base, @base.Unquoted());
+            }
+        }
     }
 }
