@@ -323,3 +323,48 @@ Expected:
     ["7", "8", "9"],
 ]
 ```
+
+## Errors
+
+### Unclosed Blank Quoted Field
+
+Suppose:
+
+```
+"
+```
+
+Throws:
+
+```
+System.FormatException: Unclosed quoted field (line #1, col #1).
+```
+
+### Unclosed Non-Blank Quoted Field
+
+Suppose:
+
+```
+foo,bar
+"foo,bar
+```
+
+Throws:
+
+```
+System.FormatException: Unclosed quoted field (line #2, col #8).
+```
+
+### Missing Delimiter
+
+Suppose:
+
+```
+"foo" bar
+```
+
+Throws:
+
+```
+System.FormatException: Missing delimiter (line #1, col #7).
+```

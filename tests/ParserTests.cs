@@ -20,6 +20,7 @@ namespace Yax.Tests
     using System.Linq;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using Mannex.Text.RegularExpressions;
     using MoreLinq;
     using Xunit;
 
@@ -28,27 +29,41 @@ namespace Yax.Tests
         [Theory]
         [MemberData(nameof(GetData))]
         public void Parse(char delimiter, char quote, char escape, string newline, bool skipBlanks,
-                          IEnumerable<string> lines, IEnumerable<string[]> rows)
+                          IEnumerable<string> lines, IEnumerable<string[]> rows,
+                          Type errorType, string errorMessage)
         {
-            using (var row = rows.GetEnumerator())
+            var dialect = new Dialect(delimiter).WithQuote(quote)
+                                                .WithEscape(escape)
+                                                .WithNewLine(newline);
+
+            if (skipBlanks)
+                dialect = dialect.SkipBlankRows();
+
+            if (errorType == null)
             {
-                var dialect = new Dialect(delimiter).WithQuote(quote)
-                                                    .WithEscape(escape)
-                                                    .WithNewLine(newline);
-
-                if (skipBlanks)
-                    dialect = dialect.SkipBlankRows();
-
-                foreach (var fields in lines.ParseXsv(dialect))
+                using (var row = rows.GetEnumerator())
                 {
-                    Assert.True(row.MoveNext(), "Source has too many rows.");
-                    Assert.Equal(row.Current, fields);
+                    foreach (var fields in lines.ParseXsv(dialect))
+                    {
+                        Assert.True(row.MoveNext(), "Source has too many rows.");
+                        Assert.Equal(row.Current, fields);
+                    }
+
+                    Assert.False(row.MoveNext(), "Source has too few rows.");
                 }
-                Assert.False(row.MoveNext(), "Source has too few rows.");
+            }
+            else
+            {
+                var e = Assert.Throws(errorType, () => lines.ParseXsv(dialect).Consume());
+                Assert.Equal(errorMessage, e.Message);
             }
         }
 
-        public static TheoryData<char, char, char, string, bool, IEnumerable<string>, IEnumerable<string[]>> GetData()
+        public static TheoryData<char, char, char, string, bool,
+                                 IEnumerable<string>,
+                                 IEnumerable<string[]>,
+                                 Type, string>
+            GetData()
         {
             var type = MethodBase.GetCurrentMethod().DeclaringType;
 
@@ -74,6 +89,7 @@ namespace Yax.Tests
                 select e.Pad(4) into e
                 where e.All(s => s != null)
                 select e.Fold((s, inp, _, exp) => new { Suppositions = string.Join(Environment.NewLine, s), Input = inp, Expected = exp }) into e
+                let throws = '[' != e.Expected.FirstOrDefault()?.TrimStart()[0]
                 select
                     config
                         .Select(p => Regex.Match(e.Suppositions, $@"(?<=\b{Regex.Escape(p)}( +is| *[=:]) *`)[^`]+(?=`)", RegexOptions.ExplicitCapture))
@@ -90,10 +106,25 @@ namespace Yax.Tests
                                        : "\n",
                             SkipBlanks = "skip".Equals(blanks, StringComparison.OrdinalIgnoreCase),
                             e.Input,
-                            Expected   = Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected))
+                            Expected   = throws
+                                       ? null
+                                       : Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected)),
+                            Error      = throws
+                                       ? Regex.Match(e.Expected.First(), @"^ *([^: ]+) *: *(.+)").BindNum((t, m) => new
+                                         {
+                                             Type    = t.Success
+                                                     ? Type.GetType(t.Value, throwOnError: true)
+                                                     : throw new Exception("Test exception type name missing."),
+                                             Message = m.Success
+                                                     ? m.Value.Trim()
+                                                     : throw new Exception("Test exception message missing."),
+                                         })
+                                       : null,
                         })
                 into e
-                select (e.Delimiter, e.Quote, e.Escape, e.NewLine, e.SkipBlanks, e.Input, e.Expected);
+                select (e.Delimiter, e.Quote, e.Escape, e.NewLine, e.SkipBlanks,
+                        e.Input, e.Expected,
+                        e.Error?.Type, e.Error?.Message);
 
             return data.ToTheoryData();
         }
