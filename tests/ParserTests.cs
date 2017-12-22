@@ -59,7 +59,7 @@ namespace Yax.Tests
             }
         }
 
-        public static TheoryData<char, char, char, string, bool,
+        public static TheoryData<char, char?, char, string, bool,
                                  IEnumerable<string>,
                                  IEnumerable<string[]>,
                                  Type, string>
@@ -68,6 +68,7 @@ namespace Yax.Tests
             var type = MethodBase.GetCurrentMethod().DeclaringType;
 
             var config = new[] { "delimiter", "quote", "escape", "newline", "blanks" };
+            var nils   = new[] { "null", "nil", "none", "undefined" };
 
             var data =
                 from q in new[]
@@ -97,7 +98,11 @@ namespace Yax.Tests
                         .Fold((d, q, esc, nl, blanks) => new
                         {
                             Delimiter  = d?[0] ?? ',',
-                            Quote      = q?[0] ?? '"',
+                            Quote      = q == null
+                                       ? '"'
+                                       : nils.Contains(q, StringComparer.OrdinalIgnoreCase)
+                                       ? (char?) null
+                                       : q[0],
                             Escape     = esc?[0] ?? '"',
                             NewLine    = nl != null
                                        ? Regex.Replace(nl, @"\\[rn]", m => m.Value[1] == 'r' ? "\r"

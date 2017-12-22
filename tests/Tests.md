@@ -324,6 +324,34 @@ Expected:
 ]
 ```
 
+## Without Quoting
+
+Suppose:
+
+- quote is `null`
+
+```
+"foo",bar,baz
+"foo,bar",baz
+"foo
+bar
+baz"
+"foo, ""bar"", baz"
+```
+
+Expected:
+
+```
+[
+    ["\"foo\"", "bar", "baz" ],
+    ["\"foo", "bar\"", "baz" ],
+    ["\"foo"],
+    ["bar"],
+    ["baz\""],
+    ["\"foo", " \"\"bar\"\"", " baz\""],
+]
+```
+
 ## Errors
 
 ### Unclosed Blank Quoted Field

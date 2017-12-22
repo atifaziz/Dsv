@@ -25,7 +25,7 @@ namespace Yax
         public static readonly Dialect Csv = new Dialect(',');
 
         public char   Delimiter { get; }
-        public char   Quote     { get; }
+        public char?  Quote     { get; }
         public char   Escape    { get; }
         public string NewLine   { get; }
 
@@ -34,7 +34,7 @@ namespace Yax
         public Dialect(char delimiter) :
             this(delimiter, '\"', '\"', "\n", null) { }
 
-        Dialect(char delimiter, char quote, char escape, string newLine,
+        Dialect(char delimiter, char? quote, char escape, string newLine,
                 Func<string, bool> rowFilter)
         {
             Delimiter    = delimiter;
@@ -47,7 +47,7 @@ namespace Yax
         public Dialect WithDelimiter(char value) =>
             value == Delimiter ? this : new Dialect(value, Quote, Escape, NewLine, RowFilter);
 
-        public Dialect WithQuote(char value) =>
+        public Dialect WithQuote(char? value) =>
             value == Quote ? this : new Dialect(Delimiter, value, Escape, NewLine, RowFilter);
 
         public Dialect WithEscape(char value) =>
@@ -145,11 +145,11 @@ namespace Yax
                             dialect.RowFilter ?? (_ => false));
 
         static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
-                                              char delimiter,
-                                              char quote,
-                                              char escape,
-                                              string nl,
-                                              Func<string, bool> rowFilter)
+                                             char   delimiter,
+                                             char?  quote,
+                                             char   escape,
+                                             string nl,
+                                             Func<string, bool> rowFilter)
         {
             var ln = 0;
             var col = 0;
