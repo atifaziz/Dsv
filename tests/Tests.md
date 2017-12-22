@@ -17,7 +17,7 @@ Source:
 
 Expected:
 
-```
+```json
 [
     ["1", "2", "3"]
 ]
@@ -38,7 +38,7 @@ Suppose:
 7,8,9
 ```
 
-```
+```json
 [
     ["1", "2", "3"],
     ["4", "5", "6"],
@@ -55,7 +55,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 []
 ```
 
@@ -77,7 +77,7 @@ foo,,
 
 Expected:
 
-```
+```json
 [
     [""],
     ["", ""],
@@ -106,7 +106,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 [
     [""],
     [""],
@@ -128,7 +128,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 [
     ["1", "2", "3"],
     [""],
@@ -150,7 +150,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 [
     ["1", "2", "3"],
     ["4", "5", "6"],
@@ -179,7 +179,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 [
     ["1", "2", "3"],
     ["4", "5"],
@@ -208,7 +208,7 @@ foo,bar,"baz"
 
 Expected:
 
-```
+```json
 [
     ["foo", "bar", "baz"],
     ["foo,bar", "baz"],
@@ -243,7 +243,7 @@ Zeus Shannon,fusce@example.com,261-3752 Turpis. Rd.,FG69 4CF
 
 Expected:
 
-```
+```json
 [
     ["Name", "Street", "Postal"],
     ["Axel Burns", "nunc@example.com", "P.O. Box 648\n7266 Ipsum Street", "TJ7 4LC"],
@@ -281,7 +281,7 @@ foo,bar,"""baz"""
 
 Expected:
 
-```
+```json
 [
     ["foo,\"bar\",baz"],
     ["\"foo\",bar,baz"],
@@ -316,7 +316,7 @@ Suppose:
 
 Expected:
 
-```
+```json
 [
     ["1", "2", "3"],
     ["4", "5", "6"],
@@ -341,7 +341,7 @@ baz"
 
 Expected:
 
-```
+```json
 [
     ["\"foo\"", "bar", "baz" ],
     ["\"foo", "bar\"", "baz" ],
