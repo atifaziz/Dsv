@@ -208,21 +208,21 @@ namespace Yax
                             state = State.InQuotedField;
                             break;
                         case State.QuoteQuote:
-                        {
-                            if (ch == quote)
                             {
-                                sb.Append(ch);
-                                state = State.InQuotedField;
+                                if (ch == quote)
+                                {
+                                    sb.Append(ch);
+                                    state = State.InQuotedField;
+                                }
+                                else
+                                {
+                                    state = State.ExpectingDelimiter;
+                                    fields.Add(sb.ToString());
+                                    sb.Length = 0;
+                                    goto reswitch;
+                                }
+                                break;
                             }
-                            else
-                            {
-                                state = State.ExpectingDelimiter;
-                                fields.Add(sb.ToString());
-                                sb.Length = 0;
-                                goto reswitch;
-                            }
-                            break;
-                        }
                         case State.InQuotedField:
                             if (ch == quote)
                             {
@@ -246,6 +246,8 @@ namespace Yax
                                 sb.Append(ch);
                             }
                             break;
+                        default:
+                            throw new Exception("XSV parsing implementation error.");
                     }
                 }
                 if (state != State.InQuotedField)
