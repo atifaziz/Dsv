@@ -13,14 +13,14 @@
 // limitations under the License.
 #endregion
 
-namespace Yax.Tests
+namespace Yax
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
 
-    static class LineReader
+    static partial class LineReader
     {
         public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
             ReadLinesFromStream(streamFactory, null);
@@ -32,10 +32,18 @@ namespace Yax.Tests
             {
                 using (var stream = streamFactory())
                 {
-                    foreach (var line in ReadLines(() => stream.Read(encoding)))
+                    foreach (var line in ReadLines(() => stream.OpenTextReader(encoding)))
                         yield return line;
                 }
             }
+        }
+
+        static StreamReader OpenTextReader(this Stream stream, Encoding encoding)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            return encoding == null
+                 ? new StreamReader(stream)
+                 : new StreamReader(stream, encoding);
         }
 
         public static IEnumerable<string> ReadLines(Func<TextReader> readerFactory)

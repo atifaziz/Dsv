@@ -33,14 +33,6 @@ namespace Yax.Tests
             return data;
         }
 
-        public static StreamReader Read(this Stream stream, Encoding encoding)
-        {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
-            return encoding == null
-                 ? new StreamReader(stream)
-                 : new StreamReader(stream, encoding);
-        }
-
         public static Stream GetManifestResourceStream(this Type type, string resourceName)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
