@@ -269,7 +269,7 @@ namespace Yax
                 }
             }
             if (sb.Length > 0)
-                throw new FormatException($"Missing delimiter (line #{ln}, col #{col}).");
+                throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col}).");
         }
     }
 }
