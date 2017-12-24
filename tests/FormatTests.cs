@@ -15,7 +15,6 @@
 
 namespace Yax.Tests
 {
-    using System;
     using Xunit;
 
     public sealed class FormatTests
@@ -58,10 +57,6 @@ namespace Yax.Tests
             [Fact]
             public void NewLineIsLineFeed() =>
                 Assert.Equal("\n", Format.Csv.NewLine);
-
-            [Fact]
-            public void RowFilterIsNull() =>
-                Assert.Null(Format.Csv.RowFilter);
         }
 
         public sealed class WithDelimiter
@@ -81,7 +76,6 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, format.Quote);
                 Assert.Equal(@base.Escape, format.Escape);
                 Assert.Equal(@base.NewLine, format.NewLine);
-                Assert.Equal(@base.RowFilter, format.RowFilter);
             }
         }
 
@@ -102,7 +96,6 @@ namespace Yax.Tests
                 Assert.Equal(quote, format.Quote);
                 Assert.Equal(@base.Escape, format.Escape);
                 Assert.Equal(@base.NewLine, format.NewLine);
-                Assert.Equal(@base.RowFilter, format.RowFilter);
             }
         }
 
@@ -123,7 +116,6 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, format.Quote);
                 Assert.Equal(escape, format.Escape);
                 Assert.Equal(@base.NewLine, format.NewLine);
-                Assert.Equal(@base.RowFilter, format.RowFilter);
             }
         }
 
@@ -144,45 +136,6 @@ namespace Yax.Tests
                 Assert.Equal(@base.Quote, format.Quote);
                 Assert.Equal(@base.Escape, format.Escape);
                 Assert.Equal(crlf, format.NewLine);
-                Assert.Equal(@base.RowFilter, format.RowFilter);
-            }
-        }
-
-        public sealed class WithRowFilter
-        {
-            [Fact]
-            public void SameRowFilterSameFormat() =>
-                Assert.Same(Format.Csv, Format.Csv.WithRowFilter(null));
-
-            [Fact]
-            public void ReturnsNewFormatWithChangedRowFilter()
-            {
-                var @base = Format.Csv;
-                var filter = new Func<string, bool>(_ => true);
-                var format = @base.WithRowFilter(filter);
-                Assert.NotSame(@base, format);
-                Assert.Equal(@base.Delimiter, format.Delimiter);
-                Assert.Equal(@base.Quote, format.Quote);
-                Assert.Equal(@base.Escape, format.Escape);
-                Assert.Equal(@base.NewLine, format.NewLine);
-                Assert.Equal(filter, format.RowFilter);
-            }
-        }
-
-        public sealed class OrWithRowFilter
-        {
-            [Fact]
-            public void ReturnsNewFormatWithChangedRowFilter()
-            {
-                var @base = Format.Csv;
-                var format = @base.WithRowFilter(s => s == "foo")
-                                   .OrWithRowFilter(s => s == "baz");
-                Assert.NotSame(@base, format);
-                Assert.False(format.RowFilter(null));
-                Assert.False(format.RowFilter(string.Empty));
-                Assert.True(format.RowFilter("foo"));
-                Assert.False(format.RowFilter("bar"));
-                Assert.True(format.RowFilter("baz"));
             }
         }
     }

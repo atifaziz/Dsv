@@ -29,44 +29,28 @@ namespace Yax
         public char   Escape    { get; }
         public string NewLine   { get; }
 
-        public Func<string, bool> RowFilter { get; }
-
         public Format(char delimiter) :
-            this(delimiter, '\"', '\"', "\n", null) { }
+            this(delimiter, '\"', '\"', "\n") { }
 
-        Format(char delimiter, char? quote, char escape, string newLine,
-               Func<string, bool> rowFilter)
+        Format(char delimiter, char? quote, char escape, string newLine)
         {
             Delimiter    = delimiter;
             Quote        = quote;
             Escape       = escape;
             NewLine      = newLine;
-            RowFilter = rowFilter;
         }
 
         public Format WithDelimiter(char value) =>
-            value == Delimiter ? this : new Format(value, Quote, Escape, NewLine, RowFilter);
+            value == Delimiter ? this : new Format(value, Quote, Escape, NewLine);
 
         public Format WithQuote(char? value) =>
-            value == Quote ? this : new Format(Delimiter, value, Escape, NewLine, RowFilter);
+            value == Quote ? this : new Format(Delimiter, value, Escape, NewLine);
 
         public Format WithEscape(char value) =>
-            value == Escape ? this : new Format(Delimiter, Quote, value, NewLine, RowFilter);
+            value == Escape ? this : new Format(Delimiter, Quote, value, NewLine);
 
         public Format WithNewLine(string value) =>
-            value == NewLine ? this : new Format(Delimiter, Quote, Escape, value, RowFilter);
-
-        public Format WithRowFilter(Func<string, bool> value) =>
-            value == RowFilter ? this : new Format(Delimiter, Quote, Escape, NewLine, value);
-
-        public Format OrWithRowFilter(Func<string, bool> value) =>
-            value == RowFilter ? this : new Format(Delimiter, Quote, Escape, NewLine,
-                                                   RowFilter == null
-                                                   ? value
-                                                   : (s => RowFilter(s) || value(s)));
-
-        public Format SkipBlankRows() =>
-            OrWithRowFilter(string.IsNullOrWhiteSpace);
+            value == NewLine ? this : new Format(Delimiter, Quote, Escape, value);
     }
 
     partial struct TextRow : IList<string>, IReadOnlyList<string>
@@ -131,6 +115,9 @@ namespace Yax
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines) =>
             lines.ParseXsv(Format.Csv);
 
+        public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> rowFilter) =>
+            lines.ParseXsv(Format.Csv, rowFilter);
+
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
         /// of lines.
@@ -138,11 +125,16 @@ namespace Yax
 
         public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
             Format format) =>
+            ParseXsv(lines, format, _ => false);
+
+        public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
+            Format format, Func<string, bool> rowFilter) =>
             ParseXsv(lines, format.Delimiter,
                             format.Quote,
                             format.Escape,
                             format.NewLine,
-                            format.RowFilter ?? (_ => false));
+                            rowFilter);
+
 
         static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
                                              char   delimiter,

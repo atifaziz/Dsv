@@ -36,14 +36,15 @@ namespace Yax.Tests
                                               .WithEscape(escape)
                                               .WithNewLine(newline);
 
-            if (skipBlanks)
-                format = format.SkipBlankRows();
+            var rowFilter = skipBlanks
+                          ? string.IsNullOrWhiteSpace
+                          : new Func<string, bool>(_ => false);
 
             if (errorType == null)
             {
                 using (var row = rows.GetEnumerator())
                 {
-                    foreach (var fields in lines.ParseXsv(format))
+                    foreach (var fields in lines.ParseXsv(format, rowFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
                         Assert.Equal(row.Current, fields);
