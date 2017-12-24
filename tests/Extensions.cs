@@ -18,7 +18,6 @@ namespace Yax.Tests
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Text;
     using Xunit;
 
     static class Extensions
