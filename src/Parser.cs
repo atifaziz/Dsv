@@ -23,6 +23,7 @@ namespace Yax
     sealed partial class Format
     {
         public static readonly Format Csv = new Format(',');
+        public static readonly Format UnquotedCsv = Csv.Unquoted();
 
         public char   Delimiter { get; }
         public char?  Quote     { get; }

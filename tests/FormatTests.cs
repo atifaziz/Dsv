@@ -59,6 +59,25 @@ namespace Yax.Tests
                 Assert.Equal("\n", Format.Csv.NewLine);
         }
 
+        public sealed class UnquotedCsv
+        {
+            [Fact]
+            public void ReturnsCustomDelimiter() =>
+                Assert.Equal(',', Format.UnquotedCsv.Delimiter);
+
+            [Fact]
+            public void QuoteIsQuote() =>
+                Assert.Null(Format.UnquotedCsv.Quote);
+
+            [Fact]
+            public void EscapeIsNullChar() =>
+                Assert.Equal('\0', Format.UnquotedCsv.Escape);
+
+            [Fact]
+            public void NewLineIsLineFeed() =>
+                Assert.Equal("\n", Format.UnquotedCsv.NewLine);
+        }
+
         public sealed class WithDelimiter
         {
             [Fact]
