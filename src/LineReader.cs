@@ -22,6 +22,9 @@ namespace Yax
 
     static partial class LineReader
     {
+        public static IEnumerable<string> SplitIntoLines(this string input) =>
+            ReadLines(() => new StringReader(input));
+
         public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
             ReadLinesFromStream(streamFactory, null);
 
