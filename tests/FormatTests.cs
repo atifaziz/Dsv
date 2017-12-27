@@ -138,5 +138,31 @@ namespace Yax.Tests
                 Assert.Equal(crlf, format.NewLine);
             }
         }
+
+        public sealed class Unquoted
+        {
+            [Fact]
+            public void ReturnsSameFormatWhenAlreadyUnquoted()
+            {
+                var @base = Format.Csv.Unquoted();
+                Assert.Same(@base, @base.Unquoted());
+            }
+
+            [Fact]
+            public void ReturnsNewFormatWhenQuotedBefore()
+            {
+                var @base = Format.Csv;
+                Assert.NotSame(@base, @base.Unquoted());
+            }
+
+            [Fact]
+            public void SetsEscapeToNullChar()
+            {
+                var @base = Format.Csv;
+                var unquoted = @base.Unquoted();
+                Assert.Equal('\0', unquoted.Escape);
+                Assert.NotEqual(unquoted.Escape, @base.Escape);
+            }
+        }
     }
 }
