@@ -28,7 +28,7 @@ namespace Yax.Tests
     {
         [Theory]
         [MemberData(nameof(GetData))]
-        public void Parse(char delimiter, char quote, char escape, string newline, bool skipBlanks,
+        public void Parse(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
                           IEnumerable<string> lines, IEnumerable<string[]> rows,
                           Type errorType, string errorMessage)
         {
@@ -47,7 +47,7 @@ namespace Yax.Tests
                     foreach (var fields in lines.ParseXsv(format, rowFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
-                        Assert.Equal(row.Current, fields);
+                        Assert.Equal(row.Current, fields.ToArray());
                     }
 
                     Assert.False(row.MoveNext(), "Source has too few rows.");
