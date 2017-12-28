@@ -44,7 +44,7 @@ namespace Dsv.Tests
             {
                 using (var row = rows.GetEnumerator())
                 {
-                    foreach (var fields in lines.ParseXsv(format, rowFilter))
+                    foreach (var fields in lines.ParseDsv(format, rowFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
                         var (ln, fs) = row.Current;
@@ -57,7 +57,7 @@ namespace Dsv.Tests
             }
             else
             {
-                var e = Assert.Throws(errorType, () => lines.ParseXsv(format).Consume());
+                var e = Assert.Throws(errorType, () => lines.ParseDsv(format).Consume());
                 Assert.Equal(errorMessage, e.Message);
             }
         }

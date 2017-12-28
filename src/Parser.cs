@@ -121,30 +121,29 @@ namespace Dsv
         /// </summary>
 
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines) =>
-            lines.ParseXsv(Format.Csv);
+            lines.ParseDsv(Format.Csv);
 
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> rowFilter) =>
-            lines.ParseXsv(Format.Csv, rowFilter);
+            lines.ParseDsv(Format.Csv, rowFilter);
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
         /// of lines.
         /// </summary>
 
-        public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
+        public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
             Format format) =>
-            ParseXsv(lines, format, _ => false);
+            ParseDsv(lines, format, _ => false);
 
-        public static IEnumerable<TextRow> ParseXsv(this IEnumerable<string> lines,
+        public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
             Format format, Func<string, bool> rowFilter) =>
-            ParseXsv(lines, format.Delimiter,
+            ParseDsv(lines, format.Delimiter,
                             format.Quote,
                             format.Escape,
                             format.NewLine,
                             rowFilter);
 
-
-        static IEnumerable<TextRow> ParseXsv(IEnumerable<string> lines,
+        static IEnumerable<TextRow> ParseDsv(IEnumerable<string> lines,
                                              char   delimiter,
                                              char?  quote,
                                              char   escape,
