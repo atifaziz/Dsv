@@ -66,11 +66,12 @@ namespace Yax.Tests
             public void WithNameWithTypeWithFormatProviderReturnsSpecifiedDataColumnBuilder()
             {
                 const string name = "foo";
-                var type = typeof(int);
-                var culture = CultureInfo.InvariantCulture;
+                var type = typeof(decimal);
+                var culture = new CultureInfo(string.Empty) { NumberFormat = { NumberGroupSeparator = "_" } };
                 var (column, options) = DataColumnSetup.Of(name, type, culture).Build();
                 AssertEqual(new DataColumn(name, type), column);
-                Assert.Same(culture, options.FormatProvider);
+                var n = options.Converter(column, "1_234_567".SplitIntoLines().ParseCsv().Single(), 0);
+                Assert.Equal(1_234_567m, n);
             }
 
             [Fact]

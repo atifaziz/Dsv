@@ -35,7 +35,7 @@ namespace Yax
 
         public static DataColumnBuilder Of(string name, Type dataType, IFormatProvider provider) =>
             DataColumnBuilder.ByRef(dc => dc[0] = new DataColumn(name, dataType))
-            + FormatProvider(provider);
+            + AutoConvert(provider);
 
         public static DataColumnBuilder Of<T>(string name, Func<string, T> converter) =>
             Of(name, typeof(T)) + Converter(s => converter(s));
@@ -118,8 +118,8 @@ namespace Yax
         static DataColumnBuilder Options(Func<DataColumnOptions, DataColumnOptions> modifier) =>
             Default + DataColumnBuilder.Options(modifier);
 
-        public static DataColumnBuilder FormatProvider(IFormatProvider provider) =>
-            provider == null ? Nop : Options(o => o.WithFormatProvider(provider));
+        public static DataColumnBuilder AutoConvert(IFormatProvider provider) =>
+            provider == null ? Nop : Options(o => o.UseAutoConversion(provider));
 
         public static DataColumnBuilder Converter(Func<string, object> converter)
         {
@@ -160,29 +160,26 @@ namespace Yax
 
     sealed partial class DataColumnOptions
     {
-        public static readonly DataColumnOptions Default = new DataColumnOptions(null, null, null);
+        public static readonly DataColumnOptions Default = new DataColumnOptions(null, null);
 
         public Func<DataColumn, TextRow, int> Binder { get; }
         public Func<DataColumn, TextRow, int, object> Converter { get; }
-        public IFormatProvider FormatProvider { get; }
 
         DataColumnOptions(Func<DataColumn, TextRow, int> binder,
-                          Func<DataColumn, TextRow, int, object> converter,
-                          IFormatProvider formatProvider)
+                          Func<DataColumn, TextRow, int, object> converter)
         {
-            Converter      = converter;
-            Binder         = binder;
-            FormatProvider = formatProvider;
+            Converter = converter;
+            Binder    = binder;
         }
 
         public DataColumnOptions WithConverter(Func<DataColumn, TextRow, int, object> value) =>
-            value == Converter ? this : new DataColumnOptions(Binder, value, FormatProvider);
+            value == Converter ? this : new DataColumnOptions(Binder, value);
 
-        public DataColumnOptions WithFormatProvider(IFormatProvider value) =>
-            value == FormatProvider ? this : new DataColumnOptions(Binder, Converter, value);
+        public DataColumnOptions UseAutoConversion(IFormatProvider provider) =>
+            WithConverter((dc, row, i) => Convert.ChangeType(row[i], dc.DataType, provider));
 
         public DataColumnOptions WithBinder(Func<DataColumn, TextRow, int> value) =>
-            value == Binder ? this : new DataColumnOptions(value, Converter, FormatProvider);
+            value == Binder ? this : new DataColumnOptions(value, Converter);
     }
 
     sealed partial class DataColumnBuildResult : IEquatable<DataColumnBuildResult>
@@ -286,7 +283,6 @@ namespace Yax
                           Index = e.Options.Binder?.Invoke(e.Column, row.Current)
                                   ?? row.Current.FindIndex(h => string.Equals(h, e.Column.ColumnName, StringComparison.OrdinalIgnoreCase)),
                           e.Options.Converter,
-                          e.Options.FormatProvider,
                       }
                       into e
                       where e.Index >= 0
@@ -297,7 +293,6 @@ namespace Yax
                           Column = new DataColumn(row.Current[i], typeof(string)),
                           Index = i,
                           DataColumnOptions.Default.Converter,
-                          DataColumnOptions.Default.FormatProvider,
                       };
 
                 var bindings = bindingz.ToArray();
@@ -321,7 +316,7 @@ namespace Yax
                                 ? binding.Converter(binding.Column, row.Current, binding.Index)
                                 : binding.Column.DataType == typeof(string)
                                 ? row.Current[binding.Index]
-                                : Convert.ChangeType(row.Current[binding.Index], binding.Column.DataType, binding.FormatProvider);
+                                : Convert.ChangeType(row.Current[binding.Index], binding.Column.DataType);
                         }
                     }
 
