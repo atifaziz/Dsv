@@ -13,7 +13,7 @@
 // limitations under the License.
 #endregion
 
-namespace Yax.Tests
+namespace Dsv.Tests
 {
     using System;
     using System.Data;
@@ -29,7 +29,7 @@ namespace Yax.Tests
             [Fact]
             public void WithNullRowsThrows()
             {
-                var e = Assert.Throws<ArgumentNullException>(() => Yax.Extensions.ToDataTable(null));
+                var e = Assert.Throws<ArgumentNullException>(() => Dsv.Extensions.ToDataTable(null));
                 Assert.Equal("rows", e.ParamName);
             }
 

@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Yax.csproj" />
+    <ProjectReference Include="..\src\Dsv.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,7 @@
 // limitations under the License.
 #endregion
 
-namespace Yax.Tests
+namespace Dsv.Tests
 {
     using System;
     using System.Collections.Generic;

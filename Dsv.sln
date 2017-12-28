@@ -2,9 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yax", "src\Yax.csproj", "{2B16043E-4442-4EFE-9EBF-9A3BD93D35BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dsv", "src\Dsv.csproj", "{2B16043E-4442-4EFE-9EBF-9A3BD93D35BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yax.Tests", "tests\Yax.Tests.csproj", "{1E6486ED-A472-4B9B-8AD0-9228397F808F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dsv.Tests", "tests\Dsv.Tests.csproj", "{1E6486ED-A472-4B9B-8AD0-9228397F808F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{79447D43-1F22-4EF5-B7DB-B19176C8CB1E}"
 ProjectSection(SolutionItems) = preProject
