@@ -227,21 +227,19 @@ namespace Dsv
                             state = State.InQuotedField;
                             break;
                         case State.QuoteQuote:
+                            if (ch == quote)
                             {
-                                if (ch == quote)
-                                {
-                                    sb.Append(ch);
-                                    state = State.InQuotedField;
-                                }
-                                else
-                                {
-                                    state = State.ExpectingDelimiter;
-                                    fields.Add(sb.ToString());
-                                    sb.Length = 0;
-                                    goto reswitch;
-                                }
-                                break;
+                                sb.Append(ch);
+                                state = State.InQuotedField;
                             }
+                            else
+                            {
+                                state = State.ExpectingDelimiter;
+                                fields.Add(sb.ToString());
+                                sb.Length = 0;
+                                goto reswitch;
+                            }
+                            break;
                         case State.InQuotedField:
                             if (ch == quote)
                             {
