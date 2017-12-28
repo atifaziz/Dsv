@@ -112,6 +112,7 @@ namespace Dsv
             Escaping,
             ExpectingDelimiter,
             QuoteQuote, // when escape char is also quote char
+            AwaitNextRow
         }
 
         /// <summary>
@@ -136,35 +137,49 @@ namespace Dsv
             ParseDsv(lines, format, _ => false);
 
         public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
-            Format format, Func<string, bool> rowFilter) =>
-            ParseDsv(lines, format.Delimiter,
-                            format.Quote,
-                            format.Escape,
-                            format.NewLine,
-                            rowFilter);
-
-        static IEnumerable<TextRow> ParseDsv(IEnumerable<string> lines,
-                                             char   delimiter,
-                                             char?  quote,
-                                             char   escape,
-                                             string nl,
-                                             Func<string, bool> rowFilter)
+            Format format, Func<string, bool> rowFilter)
         {
-            var ln = 0;
-            var rln = 0;
-            var col = 0;
-            var sb = new StringBuilder();
-            var fields = new List<string>();
-            var state = State.AtFieldStart;
+            var (onLine, onEoi) = Create(format, rowFilter);
 
             foreach (var line in lines)
             {
+                if (onLine(line) is TextRow row)
+                    yield return row;
+            }
+
+            if (onEoi() is Exception e)
+                throw e;
+        }
+
+        static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
+            Create(Format format, Func<string, bool> rowFilter)
+        {
+            var delimiter = format.Delimiter;
+            var quote     = format.Quote;
+            var escape    = format.Escape;
+            var nl        = format.NewLine;
+
+            var ln     = 0;
+            var rln    = 0;
+            var col    = 0;
+            var sb     = new StringBuilder();
+            var fields = new List<string>();
+            var state  = State.AtFieldStart;
+
+            TextRow? OnLine(string line)
+            {
+                if (state == State.AwaitNextRow)
+                {
+                    rln = ln;
+                    fields = new List<string>();
+                    state = State.AtFieldStart;
+                }
                 ln++;
                 if (state != State.InQuotedField)
                 {
                     rln++;
                     if (rowFilter(line))
-                        continue;
+                        return null;
                 }
                 col = 0;
                 foreach (var ch in line)
@@ -254,6 +269,7 @@ namespace Dsv
                             throw new Exception("XSV parsing implementation error.");
                     }
                 }
+
                 if (state != State.InQuotedField)
                 {
                     if (state == State.AtFieldStart)
@@ -265,18 +281,20 @@ namespace Dsv
                         fields.Add(sb.ToString());
                         sb.Length = 0;
                     }
-                    yield return new TextRow(rln, fields.ToArray());
-                    rln = ln;
-                    fields = new List<string>();
-                    state = State.AtFieldStart;
+                    state = State.AwaitNextRow;
+                    return new TextRow(rln, fields.ToArray());
                 }
-                else
-                {
-                    sb.Append(nl);
-                }
+
+                sb.Append(nl);
+                return null;
             }
-            if (sb.Length > 0)
-                throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col}).");
+
+            Exception OnEoi() =>
+                sb.Length > 0
+                ? new FormatException($"Unclosed quoted field (line #{ln}, col #{col}).")
+                : null;
+
+            return (OnLine, OnEoi);
         }
     }
 }
