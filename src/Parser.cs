@@ -60,8 +60,13 @@ namespace Yax
     {
         readonly string[] _fields;
 
-        internal TextRow(string[] fields) =>
+        internal TextRow(int lineNumber, string[] fields)
+        {
+            LineNumber = lineNumber;
             _fields = fields ?? throw new ArgumentNullException(nameof(fields));
+        }
+
+        public int LineNumber { get; }
 
         public string[] Fields => _fields ?? Array.Empty<string>();
 
@@ -147,6 +152,7 @@ namespace Yax
                                              Func<string, bool> rowFilter)
         {
             var ln = 0;
+            var rln = 0;
             var col = 0;
             var sb = new StringBuilder();
             var fields = new List<string>();
@@ -154,9 +160,13 @@ namespace Yax
 
             foreach (var line in lines)
             {
-                if (state != State.InQuotedField && rowFilter(line))
-                    continue;
                 ln++;
+                if (state != State.InQuotedField)
+                {
+                    rln++;
+                    if (rowFilter(line))
+                        continue;
+                }
                 col = 0;
                 foreach (var ch in line)
                 {
@@ -256,7 +266,8 @@ namespace Yax
                         fields.Add(sb.ToString());
                         sb.Length = 0;
                     }
-                    yield return new TextRow(fields.ToArray());
+                    yield return new TextRow(rln, fields.ToArray());
+                    rln = ln;
                     fields = new List<string>();
                     state = State.AtFieldStart;
                 }

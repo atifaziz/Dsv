@@ -29,7 +29,7 @@ namespace Yax.Tests
         [Theory]
         [MemberData(nameof(GetData))]
         public void Parse(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
-                          IEnumerable<string> lines, IEnumerable<string[]> rows,
+                          IEnumerable<string> lines, IEnumerable<(int Line, string[] Fields)> rows,
                           Type errorType, string errorMessage)
         {
             var format = new Format(delimiter).WithQuote(quote)
@@ -47,7 +47,9 @@ namespace Yax.Tests
                     foreach (var fields in lines.ParseXsv(format, rowFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
-                        Assert.Equal(row.Current, fields.ToArray());
+                        var (ln, fs) = row.Current;
+                        Assert.Equal(ln, fields.LineNumber);
+                        Assert.Equal(fs, fields.ToArray());
                     }
 
                     Assert.False(row.MoveNext(), "Source has too few rows.");
@@ -62,7 +64,7 @@ namespace Yax.Tests
 
         public static TheoryData<char, char?, char, string, bool,
                                  IEnumerable<string>,
-                                 IEnumerable<string[]>,
+                                 IEnumerable<(int LineNumber, string[] Fields)>,
                                  Type, string>
             GetData()
         {
@@ -70,6 +72,7 @@ namespace Yax.Tests
 
             var config = new[] { "delimiter", "quote", "escape", "newline", "blanks" };
             var nils   = new[] { "null", "nil", "none", "undefined" };
+            var proto  = new[] { new { ln = default(int), row = default(string[]) } };
 
             var data =
                 from q in new[]
@@ -114,7 +117,8 @@ namespace Yax.Tests
                             e.Input,
                             Expected   = throws
                                        ? null
-                                       : Newtonsoft.Json.JsonConvert.DeserializeObject<IEnumerable<string[]>>(string.Join(Environment.NewLine, e.Expected)),
+                                       : from r in Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(string.Join(Environment.NewLine, e.Expected), proto)
+                                         select (r.ln, r.row),
                             Error      = throws
                                        ? Regex.Match(e.Expected.First(), @"^ *([^: ]+) *: *(.+)").BindNum((t, m) => new
                                          {
