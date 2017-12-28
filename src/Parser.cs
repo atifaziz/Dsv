@@ -68,7 +68,7 @@ namespace Yax
 
         public int LineNumber { get; }
 
-        public string[] Fields => _fields ?? Array.Empty<string>();
+        string[] Fields => _fields ?? Array.Empty<string>();
 
         public string this[int index] => Fields[index];
 
