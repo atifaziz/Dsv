@@ -203,6 +203,7 @@ namespace Dsv
                                 state = State.InField;
                             }
                             break;
+
                         case State.InField:
                             if (ch == delimiter)
                             {
@@ -215,6 +216,7 @@ namespace Dsv
                                 sb.Append(ch);
                             }
                             break;
+
                         case State.ExpectingDelimiter:
                             if (char.IsWhiteSpace(ch))
                                 break;
@@ -222,10 +224,12 @@ namespace Dsv
                                 throw new FormatException($"Missing delimiter (line #{ln}, col #{col}).");
                             state = State.AtFieldStart;
                             break;
+
                         case State.Escaping:
                             sb.Append(ch);
                             state = State.InQuotedField;
                             break;
+
                         case State.QuoteQuote:
                             if (ch == quote)
                             {
@@ -240,6 +244,7 @@ namespace Dsv
                                 goto reswitch;
                             }
                             break;
+
                         case State.InQuotedField:
                             if (ch == quote)
                             {
@@ -263,6 +268,7 @@ namespace Dsv
                                 sb.Append(ch);
                             }
                             break;
+
                         default:
                             throw new Exception("XSV parsing implementation error.");
                     }
