@@ -25,6 +25,8 @@ namespace Dsv.Tests
 
     public sealed class DataTableTests
     {
+        enum Choice { Yes, No, Maybe }
+
         public sealed class ToDataTable
         {
             [Fact]
@@ -86,11 +88,101 @@ namespace Dsv.Tests
             }
         }
 
-        public sealed class ParseCsvToDataTableWithSetup
+        public sealed class ParseHeadlessCsvToDataTable
         {
             DataTable Table { get; }
 
-            enum Choice { Yes, No, Maybe }
+            public ParseHeadlessCsvToDataTable()
+            {
+                const string csv
+                    = "1,foo,yes\n"
+                    + "2,bar,no\n"
+                    + "3,baz,maybe\n";
+
+                Table = csv.SplitIntoLines().ParseCsv().ToDataTable(headless: true);
+            }
+
+            [Fact]
+            public void HasCorrectColumnCount() =>
+                Assert.Equal(3, Table.Columns.Count);
+
+            [Fact]
+            public void HasCorrectColumnNames() =>
+                Assert.Equal(new[] { "Column1", "Column2", "Column3" },
+                             from DataColumn dc in Table.Columns
+                             select dc.ColumnName);
+
+            [Fact]
+            public void HasCorrectColumnDataTypes() =>
+                Assert.Equal(Enumerable.Repeat(typeof(string), 3),
+                             from DataColumn dc in Table.Columns
+                             select dc.DataType);
+
+            [Fact]
+            public void HasCorrectRowCount() =>
+                Assert.Equal(3, Table.Rows.Count);
+
+            [Fact]
+            public void HasCorrectRowData()
+            {
+                Assert.Equal(new object[] { "1", "foo", "yes"   }, Table.Rows[0].ItemArray);
+                Assert.Equal(new object[] { "2", "bar", "no"    }, Table.Rows[1].ItemArray);
+                Assert.Equal(new object[] { "3", "baz", "maybe" }, Table.Rows[2].ItemArray);
+            }
+        }
+
+        public sealed class ParseHeadlessCsvToDataTableWithSetup
+        {
+            DataTable Table { get; }
+
+            public ParseHeadlessCsvToDataTableWithSetup()
+            {
+                const string csv
+                    = "1,foo,yes\n"
+                    + "2,bar,no\n"
+                    + "3,baz,maybe\n";
+
+                Table = csv.SplitIntoLines()
+                           .ParseCsv()
+                           .ToDataTable(true,
+                               DataColumnSetup.Int32("num", CultureInfo.InvariantCulture),
+                               DataColumnSetup.String("str"),
+                               DataColumnSetup.Of("choice", s => Enum.Parse<Choice>(s, ignoreCase: true)));
+            }
+
+            [Fact]
+            public void HasCorrectColumnCount() =>
+                Assert.Equal(3, Table.Columns.Count);
+
+            [Fact]
+            public void HasCorrectColumnNames() =>
+                Assert.Equal(new[] { "num", "str", "choice" },
+                             from DataColumn dc in Table.Columns
+                             select dc.ColumnName);
+
+            [Fact]
+            public void HasCorrectColumnDataTypes() =>
+                Assert.Equal(new[] { typeof(int), typeof(string), typeof(Choice) },
+                             from DataColumn dc in Table.Columns
+                             select dc.DataType);
+
+            [Fact]
+            public void HasCorrectRowCount() =>
+                Assert.Equal(3, Table.Rows.Count);
+
+            [Fact]
+            public void HasCorrectRowData()
+            {
+                var i = 0;
+                Assert.Equal(new object[] { 1, "foo", (int) Choice.Yes   }, Table.Rows[i++].ItemArray);
+                Assert.Equal(new object[] { 2, "bar", (int) Choice.No    }, Table.Rows[i++].ItemArray);
+                Assert.Equal(new object[] { 3, "baz", (int) Choice.Maybe }, Table.Rows[i++].ItemArray);
+            }
+        }
+
+        public sealed class ParseCsvToDataTableWithSetup
+        {
+            DataTable Table { get; }
 
             public ParseCsvToDataTableWithSetup()
             {

@@ -257,7 +257,12 @@ namespace Dsv
 
     static partial class Extensions
     {
-        public static DataTable ToDataTable(this IEnumerable<TextRow> rows, params IDataColumnBuilder[] columns)
+        public static DataTable ToDataTable(this IEnumerable<TextRow> rows, params IDataColumnBuilder[] columns) =>
+            rows.ToDataTable(false, columns);
+
+        public static DataTable ToDataTable(this IEnumerable<TextRow> rows,
+                                            bool headless,
+                                            params IDataColumnBuilder[] columns)
         {
             if (rows == null) throw new ArgumentNullException(nameof(rows));
             if (columns == null) throw new ArgumentNullException(nameof(columns));
@@ -275,52 +280,66 @@ namespace Dsv
 
                 var bindingz =
                     columns.Length > 0
-                    ? from e in builtColumns
-                      where string.IsNullOrWhiteSpace(e.Column.Expression)
-                      select new
-                      {
-                          e.Column,
-                          Index = e.Options.Binder?.Invoke(e.Column, row.Current)
-                                  ?? row.Current.FindIndex(h => string.Equals(h, e.Column.ColumnName, StringComparison.OrdinalIgnoreCase)),
-                          e.Options.Converter,
-                      }
-                      into e
-                      where e.Index >= 0
-                      select e
+                    ? headless
+                      ? builtColumns.Where(e => string.IsNullOrWhiteSpace(e.Column.Expression))
+                                    .Select((e, i) => new
+                                    {
+                                        e.Column,
+                                        Index = i,
+                                        e.Options.Converter,
+                                    })
+                      : from e in builtColumns
+                        where string.IsNullOrWhiteSpace(e.Column.Expression)
+                        select new
+                        {
+                            e.Column,
+                            Index = e.Options.Binder?.Invoke(e.Column, row.Current)
+                                    ?? row.Current.FindIndex(h => string.Equals(h, e.Column.ColumnName, StringComparison.OrdinalIgnoreCase)),
+                            e.Options.Converter,
+                        }
+                        into e
+                        where e.Index >= 0
+                        select e
                     : from i in Enumerable.Range(0, row.Current.Count)
                       select new
                       {
-                          Column = new DataColumn(row.Current[i], typeof(string)),
+                          Column = new DataColumn(headless ? "Column" + (i + 1).ToString(CultureInfo.InvariantCulture)
+                                                           : row.Current[i],
+                                                  typeof(string)),
                           Index = i,
                           DataColumnOptions.Default.Converter,
                       };
 
                 var bindings = bindingz.ToArray();
 
-                if (columns.Length == 0)
+                if (table.Columns.Count == 0)
                 {
                     foreach (var binding in bindings)
                         table.Columns.Add(binding.Column);
                 }
 
-                while (row.MoveNext())
+                if (headless || row.MoveNext())
                 {
-                    var dr = table.NewRow();
-
-                    foreach (var binding in bindings)
+                    do
                     {
-                        if (binding.Index < row.Current.Count)
-                        {
-                            dr[binding.Column]
-                                = binding.Converter != null
-                                ? binding.Converter(binding.Column, row.Current, binding.Index)
-                                : binding.Column.DataType == typeof(string)
-                                ? row.Current[binding.Index]
-                                : Convert.ChangeType(row.Current[binding.Index], binding.Column.DataType);
-                        }
-                    }
+                        var dr = table.NewRow();
 
-                    table.Rows.Add(dr);
+                        foreach (var binding in bindings)
+                        {
+                            if (binding.Index < row.Current.Count)
+                            {
+                                dr[binding.Column]
+                                    = binding.Converter != null
+                                    ? binding.Converter(binding.Column, row.Current, binding.Index)
+                                    : binding.Column.DataType == typeof(string)
+                                    ? row.Current[binding.Index]
+                                    : Convert.ChangeType(row.Current[binding.Index], binding.Column.DataType);
+                            }
+                        }
+
+                        table.Rows.Add(dr);
+                    }
+                    while (row.MoveNext());
                 }
             }
 
