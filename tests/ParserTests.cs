@@ -19,6 +19,7 @@ namespace Dsv.Tests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reactive.Linq;
     using System.Reflection;
     using System.Text.RegularExpressions;
     using Mannex.Text.RegularExpressions;
@@ -27,11 +28,10 @@ namespace Dsv.Tests
 
     public class ParserTests
     {
-        [Theory]
-        [MemberData(nameof(GetData))]
-        public void Parse(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
-                          IEnumerable<string> lines, IEnumerable<(int Line, string[] Fields)> rows,
-                          Type errorType, string errorMessage)
+        static void ParseDsv(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
+                             IEnumerable<(int Line, string[] Fields)> rows,
+                             Type errorType, string errorMessage,
+                             Func<Format, Func<string, bool>, IEnumerable<TextRow>> rowParser)
         {
             var format = new Format(delimiter).WithQuote(quote)
                                               .WithEscape(escape)
@@ -45,7 +45,7 @@ namespace Dsv.Tests
             {
                 using (var row = rows.GetEnumerator())
                 {
-                    foreach (var fields in lines.ParseDsv(format, rowFilter))
+                    foreach (var fields in rowParser(format, rowFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
                         var (ln, fs) = row.Current;
@@ -58,10 +58,32 @@ namespace Dsv.Tests
             }
             else
             {
-                var e = Assert.Throws(errorType, () => lines.ParseDsv(format).Consume());
+                var e = Assert.Throws(errorType, () => rowParser(format, rowFilter).Consume());
                 Assert.Equal(errorMessage, e.Message);
             }
         }
+
+        [Theory]
+        [MemberData(nameof(GetData))]
+        public void
+            ParseDsvWithEnumerable(
+                char delimiter, char? quote, char escape, string newline, bool skipBlanks,
+                IEnumerable<string> lines, IEnumerable<(int Line, string[] Fields)> rows,
+                Type errorType, string errorMessage) =>
+            ParseDsv(delimiter, quote, escape, newline, skipBlanks, rows, errorType, errorMessage,
+                     lines.ParseDsv);
+
+        [Theory]
+        [MemberData(nameof(GetData))]
+        public void
+            ParseDsvWithObservable(
+                char delimiter, char? quote, char escape, string newline, bool skipBlanks,
+                IEnumerable<string> lines, IEnumerable<(int Line, string[] Fields)> rows,
+                Type errorType, string errorMessage) =>
+            ParseDsv(delimiter, quote, escape, newline, skipBlanks, rows, errorType, errorMessage,
+                     (f, rf) => lines.ToObservable()
+                                     .ParseDsv(f, rf)
+                                     .ToEnumerable());
 
         public static TheoryData<char, char?, char, string, bool,
                                  IEnumerable<string>,
