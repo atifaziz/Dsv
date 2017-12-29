@@ -1,5 +1,10 @@
 # Dsv
 
+[![Build Status][win-build-badge]][win-builds]
+[![Build Status][nix-build-badge]][nix-builds]
+[![NuGet][nuget-badge]][nuget-pkg]
+[![MyGet][myget-badge]][edge-pkgs]
+
 Dsv is a [.NET Standard][netstd] Library for parsing [delimiter-separated
 values][dsv], like [CSV (comma-separated values)][csv] data. It has a
 functional design in that most data structures are immutable and there is no
@@ -24,6 +29,15 @@ Features:
 
 See the [parser test cases](tests/Tests.md) for how DSV data is handled.
 
+
+[win-build-badge]: https://img.shields.io/appveyor/ci/raboof/dsv/master.svg?label=windows
+[win-builds]: https://ci.appveyor.com/project/raboof/dsv
+[nix-build-badge]: https://img.shields.io/travis/atifaziz/Dsv/master.svg?label=linux
+[nix-builds]: https://travis-ci.org/atifaziz/Dsv
+[myget-badge]: https://img.shields.io/myget/raboof/vpre/Dsv.svg?label=myget
+[edge-pkgs]: https://www.myget.org/feed/raboof/package/nuget/Dsv
+[nuget-badge]: https://img.shields.io/nuget/v/Dsv.svg
+[nuget-pkg]: https://www.nuget.org/packages/Dsv
 
 [dsv]: https://en.wikipedia.org/wiki/Delimiter-separated_values
 [csv]: https://en.wikipedia.org/wiki/Comma-separated_values
