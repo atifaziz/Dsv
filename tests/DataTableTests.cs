@@ -50,9 +50,9 @@ namespace Dsv.Tests
             {
                 const string csv
                     = "col1,col2,col3\n"
-                      + "1,foo,yes\n"
-                      + "2,bar,no\n"
-                      + "3,baz,maybe\n";
+                    + "1,foo,yes\n"
+                    + "2,bar,no\n"
+                    + "3,baz,maybe\n";
 
                 Table = csv.SplitIntoLines().ParseCsv().ToDataTable();
             }
@@ -96,9 +96,9 @@ namespace Dsv.Tests
             {
                 const string data
                     = "num,text,ignored,choice,month\n"
-                      + "1,foo,NA,yes,Jan-11\n"
-                      + "2,bar,NA,no,Mar-15\n"
-                      + "3,baz,NA,maybe,Sep-17\n";
+                    + "1,foo,NA,yes,Jan-11\n"
+                    + "2,bar,NA,no,Mar-15\n"
+                    + "3,baz,NA,maybe,Sep-17\n";
 
                 Table =
                     data.SplitIntoLines()
