@@ -3,6 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <VersionPrefix>1.0.0</VersionPrefix>
+    <Copyright>Copyright © 2017 Atif Aziz</Copyright>
+    <Description>DSV (Delimiter-Separated Values) Parsing for .NET</Description>
+    <Authors>Atif Aziz</Authors>
+    <Owners>Atif Aziz</Owners>
+    <Company></Company>
+    <PackageProjectUrl>https://github.com/atifaziz/Dsv</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/atifaziz/Dsv</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>dsv csv tsv text</PackageTags>
+    <PackageLicenseUrl>https://github.com/atifaziz/Dsv/blob/master/COPYING.txt</PackageLicenseUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
