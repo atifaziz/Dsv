@@ -172,7 +172,7 @@ namespace Dsv
                 if (state == State.AwaitNextRow)
                 {
                     rln = ln;
-                    fields = new List<string>();
+                    fields.Clear();
                     state = State.AtFieldStart;
                 }
                 ln++;
