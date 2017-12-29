@@ -164,15 +164,28 @@ namespace Dsv
             var rln    = 0;
             var col    = 0;
             var sb     = new StringBuilder();
-            var fields = new List<string>();
+            var size   = 4;
+            var fc     = 0;
+            var fields = new string[size];
             var state  = State.AtFieldStart;
+
+            void CommitField(State nextState)
+            {
+                if (fc == size)
+                    Array.Resize(ref fields, size += 4);
+                fields[fc++] = sb.ToString();
+                if (sb.Length > 0)
+                    sb.Length = 0;
+                state = nextState;
+            }
 
             TextRow? OnLine(string line)
             {
                 if (state == State.AwaitNextRow)
                 {
                     rln = ln;
-                    fields.Clear();
+                    fields = new string[size];
+                    fc = 0;
                     state = State.AtFieldStart;
                 }
                 ln++;
@@ -196,7 +209,7 @@ namespace Dsv
                             }
                             else if (ch == delimiter)
                             {
-                                fields.Add(string.Empty);
+                                CommitField(state);
                             }
                             else
                             {
@@ -207,15 +220,9 @@ namespace Dsv
 
                         case State.InField:
                             if (ch == delimiter)
-                            {
-                                state = State.AtFieldStart;
-                                fields.Add(sb.ToString());
-                                sb.Length = 0;
-                            }
+                                CommitField(State.AtFieldStart);
                             else
-                            {
                                 sb.Append(ch);
-                            }
                             break;
 
                         case State.ExpectingDelimiter:
@@ -239,9 +246,7 @@ namespace Dsv
                             }
                             else
                             {
-                                state = State.ExpectingDelimiter;
-                                fields.Add(sb.ToString());
-                                sb.Length = 0;
+                                CommitField(State.ExpectingDelimiter);
                                 goto reswitch;
                             }
                             break;
@@ -250,24 +255,14 @@ namespace Dsv
                             if (ch == quote)
                             {
                                 if (quote == escape)
-                                {
                                     state = State.QuoteQuote;
-                                }
                                 else
-                                {
-                                    state = State.ExpectingDelimiter;
-                                    fields.Add(sb.ToString());
-                                    sb.Length = 0;
-                                }
+                                    CommitField(State.ExpectingDelimiter);
                             }
                             else if (ch == escape)
-                            {
                                 state = State.Escaping;
-                            }
                             else
-                            {
                                 sb.Append(ch);
-                            }
                             break;
 
                         default:
@@ -277,17 +272,22 @@ namespace Dsv
 
                 if (state != State.InQuotedField)
                 {
-                    if (state == State.AtFieldStart)
+                    if (state == State.AtFieldStart
+                        || state == State.InField
+                        || state == State.QuoteQuote)
                     {
-                        fields.Add(string.Empty);
+                        CommitField(State.AwaitNextRow);
                     }
-                    else if (state == State.InField || state == State.QuoteQuote)
+                    else
                     {
-                        fields.Add(sb.ToString());
-                        sb.Length = 0;
+                        state = State.AwaitNextRow;
                     }
-                    state = State.AwaitNextRow;
-                    return new TextRow(rln, fields.ToArray());
+                    if (fc < size)
+                    {
+                        Array.Resize(ref fields, fc);
+                        size = fc;
+                    }
+                    return new TextRow(rln, fields);
                 }
 
                 sb.Append(nl);
