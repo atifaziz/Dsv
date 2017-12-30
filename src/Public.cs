@@ -7,7 +7,7 @@ namespace Dsv
     public partial class Extensions {}
     public partial class DataTableBuilder {}
     public partial interface IDataTableBuilder {}
+    public partial interface IDataColumnBuilder {}
     public partial class DataTableSetup {}
     public partial class DataColumnOptions {}
-    public partial class DataColumnBuildResult {}
 }

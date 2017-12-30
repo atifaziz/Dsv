@@ -199,9 +199,9 @@ namespace Dsv.Tests
                             DataTableSetup.Column("choice", s => Enum.Parse<Choice>(s, ignoreCase: true))
                             + DataTableSetup.Int32Column("num", CultureInfo.InvariantCulture)
                             + DataTableSetup.StringColumn("str")
-                              + DataTableSetup.Header("text")
+                                            .Header("text")
                             + DataTableSetup.DateTimeColumn("date", "MMM-yy", CultureInfo.InvariantCulture)
-                              + DataTableSetup.HeaderRegex(@"\b(DATE|MONTH)\b", RegexOptions.IgnoreCase));
+                                            .HeaderRegex(@"\b(DATE|MONTH)\b", RegexOptions.IgnoreCase));
             }
 
             [Fact]

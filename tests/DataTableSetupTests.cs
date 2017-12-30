@@ -56,11 +56,6 @@ namespace Dsv.Tests
                     columnOptionsList.Single());
         }
 
-        [Fact]
-        public void DefaultColumnAddsAutoNamedColumn() =>
-            AssertEqual(new DataColumn("Column1"),
-                        Build(DataTableSetup.DefaultColumn).Column);
-
         public sealed class Column
         {
             [Fact]
