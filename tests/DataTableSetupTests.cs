@@ -16,15 +16,15 @@
 
 namespace Dsv.Tests
 {
-    using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Globalization;
     using System.Linq;
     using Xunit;
 
-    public sealed class DataColumnSetupTests
+    public sealed class DataTableSetupTests
     {
-        static void AssertEqual(DataColumn expected, DataColumn actual)
+        static void AssertEqual(DataColumn expected, DataColumn actual, int ordinal = 0)
         {
             Assert.Equal(expected.ColumnName        , actual.ColumnName        );
             Assert.Equal(expected.DataType          , actual.DataType          );
@@ -39,26 +39,36 @@ namespace Dsv.Tests
             Assert.Equal(expected.Expression        , actual.Expression        );
             Assert.Equal(expected.MaxLength         , actual.MaxLength         );
             Assert.Equal(expected.Namespace         , actual.Namespace         );
-            Assert.Equal(expected.Ordinal           , actual.Ordinal           );
             Assert.Equal(expected.Prefix            , actual.Prefix            );
             Assert.Equal(expected.ReadOnly          , actual.ReadOnly          );
-            Assert.Equal(expected.Table             , actual.Table             );
             Assert.Equal(expected.Unique            , actual.Unique            );
+
+            Assert.Equal(ordinal, actual.Ordinal);
+            Assert.NotNull(actual.Table);
+        }
+
+        static (DataColumn Column, DataColumnOptions Options) Build(IDataTableBuilder builder)
+        {
+            var table = new DataTable();
+            var columnOptionsList = new List<DataColumnOptions>();
+            builder.Build(table, columnOptionsList);
+            return (table.Columns.Cast<DataColumn>().Single(),
+                    columnOptionsList.Single());
         }
 
         [Fact]
-        public void DefaultReturnsDefaultDataColumnBuilder() =>
-                AssertEqual(new DataColumn(),
-                            DataColumnSetup.Default.Build().Column);
+        public void DefaultColumnAddsAutoNamedColumn() =>
+            AssertEqual(new DataColumn("Column1"),
+                        Build(DataTableSetup.DefaultColumn).Column);
 
-        public sealed class Of
+        public sealed class Column
         {
             [Fact]
             public void WithNameWithTypeReturnsSpecifiedDataColumnBuilder()
             {
                 const string name = "foo";
                 var type = typeof(int);
-                var (column, options) = DataColumnSetup.Of(name, type).Build();
+                var (column, options) = Build(DataTableSetup.Column(name, type));
                 AssertEqual(new DataColumn(name, type), column);
                 Assert.Same(DataColumnOptions.Default, options);
             }
@@ -69,7 +79,7 @@ namespace Dsv.Tests
                 const string name = "foo";
                 var type = typeof(decimal);
                 var culture = new CultureInfo(string.Empty) { NumberFormat = { NumberGroupSeparator = "_" } };
-                var (column, options) = DataColumnSetup.Of(name, type, culture).Build();
+                var (column, options) = Build(DataTableSetup.Column(name, type, culture));
                 AssertEqual(new DataColumn(name, type), column);
                 var n = options.Converter(column, "1_234_567".SplitIntoLines().ParseCsv().Single(), 0);
                 Assert.Equal(1_234_567m, n);
@@ -85,9 +95,8 @@ namespace Dsv.Tests
                     called = true;
                     return int.Parse(s);
                 }
-                var (column, options) = DataColumnSetup.Of(name, Converter).Build();
-                AssertEqual(new DataColumn(name, typeof(int)),
-                            column);
+                var (column, options) = Build(DataTableSetup.Column(name, Converter));
+                AssertEqual(new DataColumn(name, typeof(int)), column);
                 var converter = options.Converter;
                 Assert.NotNull(converter);
                 Assert.Equal(42, converter(column, "42".SplitIntoLines().ParseCsv().Single(), 0));
@@ -99,7 +108,7 @@ namespace Dsv.Tests
         public void StringReturnsSpecifiedDataColumnBuilder()
         {
             const string name = "foo";
-            var (column, options) = DataColumnSetup.String(name).Build();
+            var (column, options) = Build(DataTableSetup.StringColumn(name));
             AssertEqual(new DataColumn(name), column);
             Assert.Same(DataColumnOptions.Default, options);
         }

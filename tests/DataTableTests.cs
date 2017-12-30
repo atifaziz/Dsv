@@ -40,7 +40,7 @@ namespace Dsv.Tests
             public void WithNullColumns()
             {
                 var e = Assert.Throws<ArgumentNullException>(() => Enumerable.Empty<TextRow>().ToDataTable(null));
-                Assert.Equal("columns", e.ParamName);
+                Assert.Equal("builder", e.ParamName);
             }
         }
 
@@ -145,9 +145,9 @@ namespace Dsv.Tests
                 Table = csv.SplitIntoLines()
                            .ParseCsv()
                            .ToDataTable(true,
-                               DataColumnSetup.Int32("num", CultureInfo.InvariantCulture),
-                               DataColumnSetup.String("str"),
-                               DataColumnSetup.Of("choice", s => Enum.Parse<Choice>(s, ignoreCase: true)));
+                               DataTableSetup.Int32Column("num", CultureInfo.InvariantCulture)
+                               + DataTableSetup.StringColumn("str")
+                               + DataTableSetup.Column("choice", s => Enum.Parse<Choice>(s, ignoreCase: true)));
             }
 
             [Fact]
@@ -196,12 +196,12 @@ namespace Dsv.Tests
                     data.SplitIntoLines()
                         .ParseCsv()
                         .ToDataTable(
-                            DataColumnSetup.Of("choice", s => Enum.Parse<Choice>(s, ignoreCase: true)),
-                            DataColumnSetup.Int32("num", CultureInfo.InvariantCulture),
-                            DataColumnSetup.String("str")
-                            + DataColumnSetup.Header("text"),
-                            DataColumnSetup.DateTime("date", "MMM-yy", CultureInfo.InvariantCulture)
-                            + DataColumnSetup.HeaderRegex(@"\b(DATE|MONTH)\b", RegexOptions.IgnoreCase));
+                            DataTableSetup.Column("choice", s => Enum.Parse<Choice>(s, ignoreCase: true))
+                            + DataTableSetup.Int32Column("num", CultureInfo.InvariantCulture)
+                            + DataTableSetup.StringColumn("str")
+                              + DataTableSetup.Header("text")
+                            + DataTableSetup.DateTimeColumn("date", "MMM-yy", CultureInfo.InvariantCulture)
+                              + DataTableSetup.HeaderRegex(@"\b(DATE|MONTH)\b", RegexOptions.IgnoreCase));
             }
 
             [Fact]

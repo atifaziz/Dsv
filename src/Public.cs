@@ -5,9 +5,9 @@ namespace Dsv
     public partial class LineReader {}
     public partial struct TextRow {}
     public partial class Extensions {}
-    public partial class DataColumnBuilder {}
-    public partial interface IDataColumnBuilder {}
-    public partial class DataColumnSetup {}
+    public partial class DataTableBuilder {}
+    public partial interface IDataTableBuilder {}
+    public partial class DataTableSetup {}
     public partial class DataColumnOptions {}
     public partial class DataColumnBuildResult {}
 }
