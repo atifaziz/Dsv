@@ -34,20 +34,26 @@ namespace Dsv
             if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
             return _(); IEnumerable<string> _()
             {
-                using (var stream = streamFactory())
-                {
-                    foreach (var line in ReadLines(() => stream.OpenTextReader(encoding)))
-                        yield return line;
-                }
+                using (var line = streamFactory().OpenTextReader(encoding).ReadLines())
+                while (line.MoveNext())
+                    yield return line.Current;
             }
         }
 
         static StreamReader OpenTextReader(this Stream stream, Encoding encoding)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
-            return encoding == null
-                 ? new StreamReader(stream)
-                 : new StreamReader(stream, encoding);
+            try
+            {
+                return encoding == null
+                     ? new StreamReader(stream)
+                     : new StreamReader(stream, encoding);
+            }
+            catch
+            {
+                stream.Close();
+                throw;
+            }
         }
 
         public static IEnumerable<string> ReadLines(Func<TextReader> readerFactory)
@@ -55,13 +61,21 @@ namespace Dsv
             if (readerFactory == null) throw new ArgumentNullException(nameof(readerFactory));
             return _(); IEnumerable<string> _()
             {
-                using (var reader = readerFactory())
+                using (var line = readerFactory().ReadLines())
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                        yield return line;
+                    while (line.MoveNext())
+                        yield return line.Current;
                 }
             }
+        }
+
+        public static IEnumerator<string> ReadLines(this TextReader reader)
+        {
+            if (reader == null) throw new ArgumentNullException(nameof(reader));
+            string line;
+            using (reader)
+            while ((line = reader.ReadLine()) != null)
+                yield return line;
         }
     }
 }
