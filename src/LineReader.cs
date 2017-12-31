@@ -28,6 +28,12 @@ namespace Dsv
         public static IEnumerable<string> SplitIntoLines(this string input) =>
             ReadLines(() => new StringReader(input));
 
+        public static IEnumerable<string> ReadLinesFromFile(string path) =>
+            ReadLinesFromStream(() => File.Open(path, FileMode.Open));
+
+        public static IEnumerable<string> ReadLinesFromFile(string path, Encoding encoding) =>
+            ReadLinesFromStream(() => File.Open(path, FileMode.Open), encoding);
+
         public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
             ReadLinesFromStream(streamFactory, null);
 
