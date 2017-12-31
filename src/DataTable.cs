@@ -25,161 +25,98 @@ namespace Dsv
 
     static partial class DataTableSetup
     {
-        static void AddDataColumn(DataTable table,
-            ICollection<DataColumnOptions> columnOptionsList,
-            DataColumn column)
-        {
-            table.Columns.Add(column);
-            columnOptionsList.Add(DataColumnOptions.Default);
-        }
-
-        public static DataColumnBuilder Column(string name, Type dataType) =>
+        public static DataColumnSetup Column(string name, Type dataType) =>
             Column(name, dataType, null);
 
-        public static DataColumnBuilder
-            Column(string name, Type dataType, IFormatProvider provider)
+        public static DataColumnSetup Column(string name, Type dataType, IFormatProvider provider)
         {
-            var builder = new DataColumnBuilder((t, cos) => AddDataColumn(t, cos, new DataColumn(name, dataType)));
-            return provider != null ? builder.AutoConvert(provider) : builder;
+            var setup = new DataColumnSetup(() => new DataColumn(name, dataType));
+            return provider != null ? setup.AutoConvert(provider) : setup;
         }
 
-        public static DataColumnBuilder Column<T>(string name, Func<string, T> converter) =>
+        public static DataColumnSetup Column<T>(string name, Func<string, T> converter) =>
             Column(name, typeof(T)).Converter(s => converter(s));
 
-        public static DataColumnBuilder StringColumn(string name) =>
+        public static DataColumnSetup StringColumn(string name) =>
             Column(name, typeof(string));
 
-        public static DataColumnBuilder Int32Column(string name, IFormatProvider provider) =>
+        public static DataColumnSetup Int32Column(string name, IFormatProvider provider) =>
             Int32Column(name, NumberStyles.Integer, provider);
 
-        public static DataColumnBuilder Int32Column(string name, NumberStyles styles,
+        public static DataColumnSetup Int32Column(string name, NumberStyles styles,
             IFormatProvider provider) =>
             Column(name, s => int.Parse(s, styles, provider));
 
-        public static DataColumnBuilder SingleColumn(string name, IFormatProvider provider) =>
+        public static DataColumnSetup SingleColumn(string name, IFormatProvider provider) =>
             SingleColumn(name, NumberStyles.Float | NumberStyles.AllowThousands, provider);
 
-        public static DataColumnBuilder SingleColumn(string name, NumberStyles styles,
+        public static DataColumnSetup SingleColumn(string name, NumberStyles styles,
             IFormatProvider provider) =>
             Column(name, s => float.Parse(s, styles, provider));
 
-        public static DataColumnBuilder DoubleColumn(string name, IFormatProvider provider) =>
+        public static DataColumnSetup DoubleColumn(string name, IFormatProvider provider) =>
             DoubleColumn(name, NumberStyles.Float | NumberStyles.AllowThousands, provider);
 
-        public static DataColumnBuilder DoubleColumn(string name, NumberStyles styles,
+        public static DataColumnSetup DoubleColumn(string name, NumberStyles styles,
             IFormatProvider provider) =>
             Column(name, s => double.Parse(s, styles, provider));
 
-        public static DataColumnBuilder DecimalColumn(string name, IFormatProvider provider) =>
+        public static DataColumnSetup DecimalColumn(string name, IFormatProvider provider) =>
             DoubleColumn(name, NumberStyles.Number, provider);
 
-        public static DataColumnBuilder DecimalColumn(string name, NumberStyles styles,
+        public static DataColumnSetup DecimalColumn(string name, NumberStyles styles,
             IFormatProvider provider) =>
             Column(name, s => decimal.Parse(s, styles, provider));
 
-        public static DataColumnBuilder DateTimeColumn(string name, IFormatProvider provider) =>
+        public static DataColumnSetup DateTimeColumn(string name, IFormatProvider provider) =>
             DateTimeColumn(name, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeColumn(string name, DateTimeStyles styles,
+        public static DataColumnSetup DateTimeColumn(string name, DateTimeStyles styles,
             IFormatProvider provider) =>
             Column(name, s => DateTime.Parse(s, provider, styles));
 
-        public static DataColumnBuilder DateTimeColumn(string name, string format,
+        public static DataColumnSetup DateTimeColumn(string name, string format,
             IFormatProvider provider) =>
             DateTimeColumn(name, format, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeColumn(string name, string format,
+        public static DataColumnSetup DateTimeColumn(string name, string format,
             DateTimeStyles styles, IFormatProvider provider) =>
             Column(name, s => DateTime.ParseExact(s, format, provider, styles));
 
-        public static DataColumnBuilder DateTimeColumn(string name, string[] formats,
+        public static DataColumnSetup DateTimeColumn(string name, string[] formats,
             IFormatProvider provider) =>
             DateTimeColumn(name, formats, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeColumn(string name, string[] formats,
+        public static DataColumnSetup DateTimeColumn(string name, string[] formats,
             DateTimeStyles styles, IFormatProvider provider) =>
             Column(name, s => DateTime.ParseExact(s, formats, provider, styles));
 
-        public static DataColumnBuilder
+        public static DataColumnSetup
             DateTimeOffsetColumn(string name, IFormatProvider provider) =>
             DateTimeOffsetColumn(name, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeOffsetColumn(string name, DateTimeStyles styles,
+        public static DataColumnSetup DateTimeOffsetColumn(string name, DateTimeStyles styles,
             IFormatProvider provider) =>
             Column(name, s => DateTimeOffset.Parse(s, provider, styles));
 
-        public static DataColumnBuilder DateTimeOffsetColumn(string name, string format,
+        public static DataColumnSetup DateTimeOffsetColumn(string name, string format,
             IFormatProvider provider) =>
             DateTimeOffsetColumn(name, format, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeOffsetColumn(string name, string format,
+        public static DataColumnSetup DateTimeOffsetColumn(string name, string format,
             DateTimeStyles styles, IFormatProvider provider) =>
             Column(name, s => DateTimeOffset.ParseExact(s, format, provider, styles));
 
-        public static DataColumnBuilder DateTimeOffsetColumn(string name, string[] formats,
+        public static DataColumnSetup DateTimeOffsetColumn(string name, string[] formats,
             IFormatProvider provider) =>
             DateTimeOffsetColumn(name, formats, DateTimeStyles.None, provider);
 
-        public static DataColumnBuilder DateTimeOffsetColumn(string name, string[] formats,
+        public static DataColumnSetup DateTimeOffsetColumn(string name, string[] formats,
             DateTimeStyles styles, IFormatProvider provider) =>
             Column(name, s => DateTimeOffset.ParseExact(s, formats, provider, styles));
 
-        public static DataColumnBuilder Name(this IDataColumnBuilder builder, string value) =>
-            builder.Combine(DataColumnBuilder.UpdateLastColumn(dc => dc.ColumnName = value));
-
-        public static DataColumnBuilder DataType(this IDataColumnBuilder builder, Type value)
-        {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-            return builder.Combine(DataColumnBuilder.UpdateLastColumn(dc => dc.DataType = value));
-        }
-
         public static IDataTableBuilder[] StringColumns(params string[] columns) =>
             columns.Select(name => (IDataTableBuilder) StringColumn(name)).ToArray();
-
-        static DataColumnBuilder Options(this IDataColumnBuilder builder, Func<DataColumnOptions, DataColumnOptions> modifier) =>
-            builder.Combine(DataColumnBuilder.UpdateLastColumnOptions(modifier));
-
-        public static DataColumnBuilder AutoConvert(this IDataColumnBuilder builder, IFormatProvider provider) =>
-            builder.Options(o => o.UseAutoConversion(provider));
-
-        public static DataColumnBuilder Converter(this IDataColumnBuilder builder, Func<string, object> converter)
-        {
-            if (converter == null) throw new ArgumentNullException(nameof(converter));
-            return builder.Options(o => o.WithConverter((_, row, i) => converter(row[i])));
-        }
-
-        public static DataColumnBuilder Converter(this IDataColumnBuilder builder, Func<DataColumn, TextRow, int, object> converter)
-        {
-            if (converter == null) throw new ArgumentNullException(nameof(converter));
-            return builder.Options(o => o.WithConverter(converter));
-        }
-
-        public static DataColumnBuilder Binder(this IDataColumnBuilder builder, Func<DataColumn, TextRow, int> binder)
-        {
-            if (binder == null) throw new ArgumentNullException(nameof(binder));
-            return builder.Options(o => o.WithBinder(binder));
-        }
-
-        public static DataColumnBuilder Header(this IDataColumnBuilder builder, string name) =>
-            builder.Header(name, StringComparison.OrdinalIgnoreCase);
-
-        public static DataColumnBuilder Header(this IDataColumnBuilder builder, string name, StringComparison comparison) =>
-            builder.Binder((_, hs) => hs.FindIndex(h => string.Equals(h, name, comparison)));
-
-        public static DataColumnBuilder ColumnNameComparison(this IDataColumnBuilder builder, StringComparison comparison) =>
-            builder.Binder((dc, hs) => hs.FindIndex(h => string.Equals(h, dc.ColumnName, comparison)));
-
-        public static DataColumnBuilder HeaderRegex(this IDataColumnBuilder builder, Regex regex) =>
-            builder.Binder((dc, hs) => hs.FindIndex(regex.IsMatch));
-
-        public static DataColumnBuilder HeaderRegex(this IDataColumnBuilder builder, string pattern) =>
-            builder.HeaderRegex(pattern, RegexOptions.None);
-
-        public static DataColumnBuilder HeaderRegex(this IDataColumnBuilder builder, string pattern, RegexOptions options) =>
-            builder.Binder((dc, hs) => hs.FindIndex(h => Regex.IsMatch(h, pattern, options)));
-
-        public static DataColumnBuilder Combine(this IDataColumnBuilder a, IDataColumnBuilder b) =>
-            new DataColumnBuilder((t, cos) => { a.Build(t, cos); b.Build(t, cos); });
     }
 
     sealed partial class DataColumnOptions
@@ -206,52 +143,159 @@ namespace Dsv
             value == Binder ? this : new DataColumnOptions(value, Converter);
     }
 
+    sealed partial class DataColumnSetup : IDataTableBuilder, IDataColumnBuilder
+    {
+        readonly Func<DataColumn> _factory;
+        readonly IDataColumnBuilder _builder;
+
+        public DataColumnSetup(Func<DataColumn> factory) :
+            this(factory, DataColumnBuilder.Nop, DataColumnOptions.Default) {}
+
+        public DataColumnSetup(Func<DataColumn> factory,
+                               IDataColumnBuilder builder,
+                               DataColumnOptions options)
+        {
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            Options  = options ?? throw new ArgumentNullException(nameof(options));
+            _builder = builder ?? throw new ArgumentNullException(nameof(builder));
+        }
+
+        public DataColumnOptions Options { get; }
+
+        public DataColumnSetup WithOptions(DataColumnOptions options) =>
+            new DataColumnSetup(_factory, _builder, options);
+
+        public DataColumnSetup AddBuilder(IDataColumnBuilder builder)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+            return new DataColumnSetup(_factory,
+                                       new DataColumnBuilder(dc =>
+                                       {
+                                           _builder.Build(dc);
+                                           builder.Build(dc);
+                                       }),
+                                       Options);
+        }
+
+        void IDataColumnBuilder.Build(DataColumn column) =>
+            _builder.Build(column ?? throw new ArgumentNullException(nameof(column)));
+
+        void IDataTableBuilder.Build(DataTable table, ICollection<DataColumnOptions> columnOptions)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table));
+            if (columnOptions == null) throw new ArgumentNullException(nameof(columnOptions));
+
+            var column = _factory();
+            _builder.Build(column);
+            table.Columns.Add(column);
+            columnOptions.Add(Options);
+        }
+
+        public static DataTableBuilder operator +(DataColumnSetup a, IDataTableBuilder b) =>
+            new DataTableBuilder((t, cos) =>
+            {
+                IDataTableBuilder dtba = a;
+                dtba.Build(t, cos);
+                b.Build(t, cos);
+            });
+
+        public DataColumnSetup Name(string value) =>
+            AddBuilder(new DataColumnBuilder(dc => dc.ColumnName = value));
+
+        public DataColumnSetup DataType(Type value)
+        {
+            if (value == null) throw new ArgumentNullException(nameof(value));
+            return AddBuilder(new DataColumnBuilder(dc => dc.DataType = value));
+        }
+
+        public DataColumnSetup Converter(Func<string, object> converter)
+        {
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
+            return Converter((_, row, i) => converter(row[i]));
+        }
+
+        public DataColumnSetup Converter(Func<DataColumn, TextRow, int, object> converter)
+        {
+            if (converter == null) throw new ArgumentNullException(nameof(converter));
+            return WithOptions(Options.WithConverter(converter));
+        }
+
+        public DataColumnSetup AutoConvert(IFormatProvider provider) =>
+            WithOptions(Options.UseAutoConversion(provider));
+
+        public DataColumnSetup Binder(Func<DataColumn, TextRow, int> binder)
+        {
+            if (binder == null) throw new ArgumentNullException(nameof(binder));
+            return WithOptions(Options.WithBinder(binder));
+        }
+
+        public DataColumnSetup Header(string name) =>
+            Header(name, StringComparison.OrdinalIgnoreCase);
+
+        public DataColumnSetup Header(string name, StringComparison comparison) =>
+            Binder((_, hs) => hs.FindIndex(h => string.Equals(h, name, comparison)));
+
+        public DataColumnSetup ColumnNameComparison(StringComparison comparison) =>
+            Binder((dc, hs) => hs.FindIndex(h => string.Equals(h, dc.ColumnName, comparison)));
+
+        public DataColumnSetup HeaderRegex(Regex regex) =>
+            Binder((dc, hs) => hs.FindIndex(regex.IsMatch));
+
+        public DataColumnSetup HeaderRegex(string pattern) =>
+            HeaderRegex(pattern, RegexOptions.None);
+
+        public DataColumnSetup HeaderRegex(string pattern, RegexOptions options) =>
+            Binder((dc, hs) => hs.FindIndex(h => Regex.IsMatch(h, pattern, options)));
+    }
+
     partial interface IDataTableBuilder
     {
-        void Build(DataTable table, IList<DataColumnOptions> columnOptions);
+        void Build(DataTable table, ICollection<DataColumnOptions> columnOptions);
     }
 
     partial class DataTableBuilder : IDataTableBuilder
     {
         public static readonly IDataTableBuilder Nop = new DataTableBuilder(delegate {});
 
-        readonly Action<DataTable, IList<DataColumnOptions>> _builder;
+        readonly Action<DataTable, ICollection<DataColumnOptions>> _builder;
 
-        public DataTableBuilder(Action<DataTable, IList<DataColumnOptions>> builder) =>
+        public DataTableBuilder(Action<DataTable, ICollection<DataColumnOptions>> builder) =>
             _builder = builder ?? throw new ArgumentNullException(nameof(builder));
 
-        public void Build(DataTable table, IList<DataColumnOptions> columnOptions) =>
+        public void Build(DataTable table, ICollection<DataColumnOptions> columnOptions)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table));
+            if (columnOptions == null) throw new ArgumentNullException(nameof(columnOptions));
             _builder(table, columnOptions);
+        }
 
         public static DataTableBuilder operator +(DataTableBuilder a, DataTableBuilder b) =>
-            new DataTableBuilder((t, cos) => { a._builder(t, cos); b._builder(t, cos); });
+              b == null ? a
+            : a == null ? b
+            : new DataTableBuilder((t, cos) => { a.Build(t, cos); b.Build(t, cos); });
+
+        public static DataTableBuilder operator +(DataTableBuilder a, IDataTableBuilder b) =>
+              b == null ? a
+            : a == null ? new DataTableBuilder(b.Build)
+            : new DataTableBuilder((t, cos) => { a.Build(t, cos); b.Build(t, cos); });
     }
 
-    partial interface IDataColumnBuilder : IDataTableBuilder {}
-
-    public sealed class DataColumnBuilder : DataTableBuilder, IDataColumnBuilder
+    partial interface IDataColumnBuilder
     {
-        public DataColumnBuilder(Action<DataTable, IList<DataColumnOptions>> builder)
-            : base(builder) { }
+        void Build(DataColumn column);
+    }
 
-        public static IDataColumnBuilder UpdateLastColumn(Action<DataColumn> action)
-        {
-            if (action == null) throw new ArgumentNullException(nameof(action));
-            return new DataColumnBuilder((t, _) => action(t.Columns[t.Columns.Count - 1]));
-        }
+    sealed partial class DataColumnBuilder : IDataColumnBuilder
+    {
+        internal static readonly IDataColumnBuilder Nop = new DataColumnBuilder(delegate {});
 
-        public static IDataColumnBuilder UpdateLastColumnOptions(Func<DataColumnOptions, DataColumnOptions> modifier)
-        {
-            if (modifier == null) throw new ArgumentNullException(nameof(modifier));
-            return new DataColumnBuilder((_, cos) =>
-            {
-                var index = cos.Count - 1;
-                cos[index] = modifier(cos[index]);
-            });
-        }
+        readonly Action<DataColumn> _builder;
 
-        public static DataTableBuilder operator +(DataColumnBuilder a, IDataColumnBuilder b) =>
-            new DataTableBuilder((t, cos) => { a.Build(t, cos); b.Build(t, cos); });
+        public DataColumnBuilder(Action<DataColumn> builder) =>
+            _builder = builder ?? throw new ArgumentNullException(nameof(builder));
+
+        public void Build(DataColumn column) =>
+            _builder(column ?? throw new ArgumentNullException(nameof(column)));
     }
 
     static partial class Extensions
