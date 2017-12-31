@@ -19,6 +19,8 @@ namespace Dsv
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Net;
+    using System.Net.Http;
     using System.Text;
 
     static partial class LineReader
@@ -76,6 +78,70 @@ namespace Dsv
             using (reader)
             while ((line = reader.ReadLine()) != null)
                 yield return line;
+        }
+
+        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory) =>
+            ReadLines(httpWebResponseFactory, null);
+
+        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory,
+                                                    Encoding encodingOverride)
+        {
+            if (httpWebResponseFactory == null) throw new ArgumentNullException(nameof(httpWebResponseFactory));
+
+            return _(); IEnumerable<string> _()
+            {
+                using (var response = httpWebResponseFactory())
+                {
+                    var encoding =
+                        encodingOverride ??
+                        (string.IsNullOrEmpty(response.CharacterSet)
+                         ? Encoding.GetEncoding(response.CharacterSet)
+                         : null);
+
+                    using (var line = response.GetResponseStream()
+                                              .OpenTextReader(encoding)
+                                              .ReadLines())
+                    {
+                        while (line.MoveNext())
+                            yield return line.Current;
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> httpResponseMessageFactory) =>
+            ReadLines(httpResponseMessageFactory, null);
+
+        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> httpResponseMessageFactory,
+                                                    Encoding encodingOverride)
+        {
+            if (httpResponseMessageFactory == null) throw new ArgumentNullException(nameof(httpResponseMessageFactory));
+
+            return _(); IEnumerable<string> _()
+            {
+                using (var response = httpResponseMessageFactory())
+                {
+                    if (response.Content != null)
+                    {
+                        var encoding =
+                            encodingOverride
+                            ?? (response.Content.Headers.ContentType?.CharSet is string charSet
+                                && charSet.Length > 0
+                                ? Encoding.GetEncoding(charSet)
+                                : null);
+
+                        using (var line = response.Content
+                                                  .ReadAsStreamAsync()
+                                                  .GetAwaiter().GetResult()
+                                                  .OpenTextReader(encoding)
+                                                  .ReadLines())
+                        {
+                            while (line.MoveNext())
+                                yield return line.Current;
+                        }
+                    }
+                }
+            }
         }
     }
 }
