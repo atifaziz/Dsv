@@ -47,6 +47,13 @@ namespace Dsv
             IFormatProvider provider) =>
             Column(name, s => int.Parse(s, styles, provider));
 
+        public static DataColumnSetup Int64Column(string name, IFormatProvider provider) =>
+            Int64Column(name, NumberStyles.Integer, provider);
+
+        public static DataColumnSetup Int64Column(string name, NumberStyles styles,
+            IFormatProvider provider) =>
+            Column(name, s => long.Parse(s, styles, provider));
+
         public static DataColumnSetup SingleColumn(string name, IFormatProvider provider) =>
             SingleColumn(name, NumberStyles.Float | NumberStyles.AllowThousands, provider);
 
