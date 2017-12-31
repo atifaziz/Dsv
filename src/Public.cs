@@ -12,4 +12,5 @@ namespace Dsv
     public partial class DataTableSetup {}
     public partial class DataColumnSetup {}
     public partial class DataColumnOptions {}
+    public partial class Opener {}
 }

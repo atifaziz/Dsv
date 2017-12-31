@@ -29,10 +29,10 @@ namespace Dsv
             ReadLines(() => new StringReader(input));
 
         public static IEnumerable<string> ReadLinesFromFile(string path) =>
-            ReadLinesFromStream(() => File.Open(path, FileMode.Open));
+            ReadLines(Opener.TextFile(path));
 
         public static IEnumerable<string> ReadLinesFromFile(string path, Encoding encoding) =>
-            ReadLinesFromStream(() => File.Open(path, FileMode.Open), encoding);
+            ReadLines(Opener.TextFile(path, encoding));
 
         public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
             ReadLinesFromStream(streamFactory, null);
