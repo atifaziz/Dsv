@@ -126,6 +126,20 @@ namespace Dsv
             }
         }
 
+        public static IEnumerable<string> ReadLines(this HttpClient client,
+                                                    Func<HttpRequestMessage> requestFactory) =>
+            ReadLines(client, requestFactory, null);
+
+        public static IEnumerable<string> ReadLines(this HttpClient client,
+                                                    Func<HttpRequestMessage> requestFactory,
+                                                    Encoding overridingEncoding)
+        {
+            if (client == null) throw new ArgumentNullException(nameof(client));
+            if (requestFactory == null) throw new ArgumentNullException(nameof(requestFactory));
+
+            return ReadLines(() => client.SendAsync(requestFactory()).GetAwaiter().GetResult());
+        }
+
         public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> responseFactory) =>
             ReadLines(responseFactory, null);
 
