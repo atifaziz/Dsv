@@ -86,11 +86,21 @@ namespace Dsv
                 yield return line;
         }
 
+        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> httpWebRequestFactory) =>
+            ReadLines(httpWebRequestFactory, null);
+
+        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> httpWebRequestFactory,
+                                                    Encoding overridingEncoding)
+        {
+            if (httpWebRequestFactory == null) throw new ArgumentNullException(nameof(httpWebRequestFactory));
+            return ReadLines(() => (HttpWebResponse) httpWebRequestFactory().GetResponse(), overridingEncoding);
+        }
+
         public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory) =>
             ReadLines(httpWebResponseFactory, null);
 
         public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory,
-                                                    Encoding encodingOverride)
+                                                    Encoding overridingEncoding)
         {
             if (httpWebResponseFactory == null) throw new ArgumentNullException(nameof(httpWebResponseFactory));
 
@@ -99,9 +109,10 @@ namespace Dsv
                 using (var response = httpWebResponseFactory())
                 {
                     var encoding =
-                        encodingOverride ??
-                        (string.IsNullOrEmpty(response.CharacterSet)
-                         ? Encoding.GetEncoding(response.CharacterSet)
+                        overridingEncoding ??
+                        (response.CharacterSet is string charSet
+                         && charSet.Length > 0
+                         ? Encoding.GetEncoding(charSet)
                          : null);
 
                     using (var line = response.GetResponseStream()
@@ -119,7 +130,7 @@ namespace Dsv
             ReadLines(httpResponseMessageFactory, null);
 
         public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> httpResponseMessageFactory,
-                                                    Encoding encodingOverride)
+                                                    Encoding overridingEncoding)
         {
             if (httpResponseMessageFactory == null) throw new ArgumentNullException(nameof(httpResponseMessageFactory));
 
@@ -130,7 +141,7 @@ namespace Dsv
                     if (response.Content != null)
                     {
                         var encoding =
-                            encodingOverride
+                            overridingEncoding
                             ?? (response.Content.Headers.ContentType?.CharSet is string charSet
                                 && charSet.Length > 0
                                 ? Encoding.GetEncoding(charSet)
