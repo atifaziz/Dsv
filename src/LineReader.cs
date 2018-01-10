@@ -152,6 +152,7 @@ namespace Dsv
             {
                 using (var response = responseFactory())
                 {
+                    response.EnsureSuccessStatusCode();
                     if (response.Content != null)
                     {
                         var encoding =
