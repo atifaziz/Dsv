@@ -24,7 +24,7 @@ namespace Dsv
     using System.Net.Security;
     using System.Text;
 
-    static partial class Opener
+    static partial class Source
     {
         public static Func<FileStream> File(string path) =>
             () => new FileStream(path, FileMode.Open);
