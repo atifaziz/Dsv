@@ -86,27 +86,27 @@ namespace Dsv
                 yield return line;
         }
 
-        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> httpWebRequestFactory) =>
-            ReadLines(httpWebRequestFactory, null);
+        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> requestFactory) =>
+            ReadLines(requestFactory, null);
 
-        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> httpWebRequestFactory,
+        public static IEnumerable<string> ReadLines(Func<HttpWebRequest> requestFactory,
                                                     Encoding overridingEncoding)
         {
-            if (httpWebRequestFactory == null) throw new ArgumentNullException(nameof(httpWebRequestFactory));
-            return ReadLines(() => (HttpWebResponse) httpWebRequestFactory().GetResponse(), overridingEncoding);
+            if (requestFactory == null) throw new ArgumentNullException(nameof(requestFactory));
+            return ReadLines(() => (HttpWebResponse) requestFactory().GetResponse(), overridingEncoding);
         }
 
-        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory) =>
-            ReadLines(httpWebResponseFactory, null);
+        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> responseFactory) =>
+            ReadLines(responseFactory, null);
 
-        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> httpWebResponseFactory,
+        public static IEnumerable<string> ReadLines(Func<HttpWebResponse> responseFactory,
                                                     Encoding overridingEncoding)
         {
-            if (httpWebResponseFactory == null) throw new ArgumentNullException(nameof(httpWebResponseFactory));
+            if (responseFactory == null) throw new ArgumentNullException(nameof(responseFactory));
 
             return _(); IEnumerable<string> _()
             {
-                using (var response = httpWebResponseFactory())
+                using (var response = responseFactory())
                 {
                     var encoding =
                         overridingEncoding ??
@@ -126,17 +126,17 @@ namespace Dsv
             }
         }
 
-        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> httpResponseMessageFactory) =>
-            ReadLines(httpResponseMessageFactory, null);
+        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> responseFactory) =>
+            ReadLines(responseFactory, null);
 
-        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> httpResponseMessageFactory,
+        public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> responseFactory,
                                                     Encoding overridingEncoding)
         {
-            if (httpResponseMessageFactory == null) throw new ArgumentNullException(nameof(httpResponseMessageFactory));
+            if (responseFactory == null) throw new ArgumentNullException(nameof(responseFactory));
 
             return _(); IEnumerable<string> _()
             {
-                using (var response = httpResponseMessageFactory())
+                using (var response = responseFactory())
                 {
                     if (response.Content != null)
                     {
