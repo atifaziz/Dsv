@@ -17,8 +17,11 @@
 namespace Dsv
 {
     using System;
+    using System.Collections.Specialized;
     using System.IO;
     using System.Net;
+    using System.Net.Cache;
+    using System.Net.Security;
     using System.Text;
 
     static partial class Opener
@@ -35,30 +38,52 @@ namespace Dsv
         public static Func<StringReader> String(string input) =>
             () => new StringReader(input);
 
-        public static Func<HttpWebResponse>
-            HttpGet(Uri url,
-                    string accept = null,
-                    string userAgent = null,
-                    bool useDefaultCredentials = false,
-                    ICredentials credentials = null,
-                    TimeSpan? timeout = null,
-                    IWebProxy proxy = null,
-                    DecompressionMethods automaticDecompression = DecompressionMethods.None)
+        public static Func<HttpWebRequest> Http(Uri url, Action<HttpWebRequest> modifier)
         {
             if (url == null) throw new ArgumentNullException(nameof(url));
+            if (modifier == null) throw new ArgumentNullException(nameof(modifier));
             return () =>
             {
                 var request = WebRequest.CreateHttp(url);
-                request.UseDefaultCredentials = useDefaultCredentials;
-                if (timeout != null)
-                    request.Timeout = (int) timeout.Value.TotalMilliseconds;
-                request.Accept = accept;
-                request.UserAgent = userAgent;
-                request.Proxy = proxy;
-                request.AutomaticDecompression = automaticDecompression;
-                request.Credentials = credentials;
-                return (HttpWebResponse) request.GetResponse();
+                modifier(request);
+                return request;
             };
         }
+
+        public static Func<HttpWebRequest>
+            Http(Uri url,
+                 string accept                  = null,
+                 string userAgent               = null,
+                 NameValueCollection headers    = null,
+                 bool useDefaultCredentials     = false,
+                 ICredentials credentials       = null,
+                 bool preAuthenticate           = false,
+                 DateTime? ifModifiedSince      = null,
+                 TimeSpan? timeout              = null,
+                 TimeSpan? readWriteTimeout     = null,
+                 IWebProxy proxy                = null,
+                 DecompressionMethods automaticDecompression = DecompressionMethods.None,
+                 string referer                 = null,
+                 RemoteCertificateValidationCallback serverCertificateValidationCallback = null,
+                 bool disallowAutoRedirect      = false,
+                 RequestCachePolicy cachePolicy = null) =>
+            Http(url, request =>
+            {
+                request.Accept = accept;
+                request.UserAgent = userAgent;
+                if ((headers?.Count ?? 0) > 0) request.Headers.Add(headers);
+                request.UseDefaultCredentials = useDefaultCredentials;
+                request.Credentials = credentials;
+                request.PreAuthenticate = preAuthenticate;
+                if (ifModifiedSince != null) request.IfModifiedSince = ifModifiedSince.Value;
+                if (timeout != null) request.Timeout = (int) timeout.Value.TotalMilliseconds;
+                if (readWriteTimeout != null) request.ReadWriteTimeout = (int) readWriteTimeout.Value.TotalMilliseconds;
+                request.Proxy = proxy;
+                request.AutomaticDecompression = automaticDecompression;
+                request.Referer = referer;
+                request.ServerCertificateValidationCallback = serverCertificateValidationCallback;
+                request.AllowAutoRedirect = !disallowAutoRedirect;
+                if (cachePolicy != null) request.CachePolicy = cachePolicy;
+            });
     }
 }
