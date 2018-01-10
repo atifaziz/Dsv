@@ -69,11 +69,20 @@ namespace Dsv
                  RequestCachePolicy cachePolicy = null) =>
             Http(url, request =>
             {
+                if ((request.Credentials = credentials) == null)
+                {
+                    request.UseDefaultCredentials = useDefaultCredentials;
+                }
+                else if (useDefaultCredentials)
+                {
+                    throw new ArgumentException("Credentials supplied when use of default credentials was also requested. " +
+                                                "Specify one or the other.",
+                                                nameof(credentials));
+                }
+
                 request.Accept = accept;
                 request.UserAgent = userAgent;
                 if ((headers?.Count ?? 0) > 0) request.Headers.Add(headers);
-                request.UseDefaultCredentials = useDefaultCredentials;
-                request.Credentials = credentials;
                 request.PreAuthenticate = preAuthenticate;
                 if (ifModifiedSince != null) request.IfModifiedSince = ifModifiedSince.Value;
                 if (timeout != null) request.Timeout = (int) timeout.Value.TotalMilliseconds;
