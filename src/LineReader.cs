@@ -137,7 +137,11 @@ namespace Dsv
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (requestFactory == null) throw new ArgumentNullException(nameof(requestFactory));
 
-            return ReadLines(() => client.SendAsync(requestFactory()).GetAwaiter().GetResult());
+            return ReadLines(() =>
+            {
+                using (var request = requestFactory())
+                    return client.SendAsync(request).GetAwaiter().GetResult();
+            });
         }
 
         public static IEnumerable<string> ReadLines(Func<HttpResponseMessage> responseFactory) =>
