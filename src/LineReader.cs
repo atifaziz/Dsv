@@ -126,6 +126,9 @@ namespace Dsv
             }
         }
 
+        public static IEnumerable<string> ReadLines(this HttpClient client, Uri url) =>
+            ReadLines(client, () => new HttpRequestMessage(HttpMethod.Get, url));
+
         public static IEnumerable<string> ReadLines(this HttpClient client,
                                                     Func<HttpRequestMessage> requestFactory) =>
             ReadLines(client, requestFactory, null);
