@@ -35,6 +35,12 @@ namespace Dsv
         public static Func<StreamReader> TextFile(string path, Encoding encoding) =>
             () => new StreamReader(path, encoding);
 
+        public static Func<MemoryStream> Bytes(byte[] data) =>
+            () => new MemoryStream(data, writable: false);
+
+        public static Func<MemoryStream> Bytes(byte[] data, int offset, int length) =>
+            () => new MemoryStream(data, offset, length, writable: false);
+
         public static Func<StringReader> String(string input) =>
             () => new StringReader(input);
 
