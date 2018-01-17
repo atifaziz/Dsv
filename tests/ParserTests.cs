@@ -132,7 +132,9 @@ namespace Dsv.Tests
                                        : q[0],
                             Escape     = esc?[0] ?? '"',
                             NewLine    = nl != null
-                                       ? Regex.Replace(nl, @"\\[rn]", m => m.Value[1] == 'r' ? "\r"
+                                       ? nils.Contains(nl, StringComparer.OrdinalIgnoreCase)
+                                       ? null
+                                       : Regex.Replace(nl, @"\\[rn]", m => m.Value[1] == 'r' ? "\r"
                                                                          : m.Value[1] == 'n' ? "\n"
                                                                          : throw new FormatException())
                                        : "\n",

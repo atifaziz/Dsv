@@ -290,7 +290,7 @@ namespace Dsv
                     return new TextRow(rln, fields);
                 }
 
-                sb.Append(nl);
+                sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
                 return null;
             }
 

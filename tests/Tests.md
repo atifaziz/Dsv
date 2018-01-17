@@ -257,6 +257,25 @@ Expected:
 ]
 ```
 
+## Disallow Rows on Multiple Lines
+
+Suppose:
+
+- newline is `null`
+
+```
+Name,Street,Postal
+Axel Burns,nunc@example.com,"P.O. Box 648
+7266 Ipsum Street",TJ7 4LC
+Akeem Oneill,penatibus@example.com,880-5079 Ipsum St.,IJ44 7TH
+```
+
+Throws:
+
+```
+System.FormatException: Unclosed quoted field (line #2, col #42).
+```
+
 ## Quotes in Fields
 
 Suppose:
