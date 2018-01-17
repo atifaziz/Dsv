@@ -17,11 +17,7 @@
 namespace Dsv
 {
     using System;
-    using System.Collections.Specialized;
     using System.IO;
-    using System.Net;
-    using System.Net.Cache;
-    using System.Net.Security;
     using System.Text;
 
     static partial class Source
@@ -43,37 +39,158 @@ namespace Dsv
 
         public static Func<StringReader> String(string input) =>
             () => new StringReader(input);
+    }
+}
 
-        public static Func<HttpWebRequest> Http(Uri url, Action<HttpWebRequest> modifier)
+namespace Dsv
+{
+    using System;
+    using System.Collections.Specialized;
+    using System.IO;
+    using System.Net;
+    using System.Net.Cache;
+    using System.Net.Mime;
+    using System.Net.Security;
+    using System.Text;
+
+    static partial class Http
+    {
+        public static Func<HttpWebResponse> Get(Uri url) =>
+            Get(url, null);
+
+        public static Func<HttpWebResponse> Get(Uri url, Action<HttpWebRequest> requestModifier)
         {
             if (url == null) throw new ArgumentNullException(nameof(url));
-            if (modifier == null) throw new ArgumentNullException(nameof(modifier));
+
             return () =>
             {
-                var request = WebRequest.CreateHttp(url);
-                modifier(request);
-                return request;
+                var request = CreateHttpRequest(url, requestModifier);
+                request.Method = "GET";
+                return (HttpWebResponse) request.GetResponse();
             };
         }
 
-        public static Func<HttpWebRequest>
-            Http(Uri url,
-                 string accept                  = null,
-                 string userAgent               = null,
-                 NameValueCollection headers    = null,
-                 bool useDefaultCredentials     = false,
-                 ICredentials credentials       = null,
-                 bool preAuthenticate           = false,
-                 DateTime? ifModifiedSince      = null,
-                 TimeSpan? timeout              = null,
-                 TimeSpan? readWriteTimeout     = null,
-                 IWebProxy proxy                = null,
-                 DecompressionMethods automaticDecompression = DecompressionMethods.None,
-                 string referer                 = null,
-                 RemoteCertificateValidationCallback serverCertificateValidationCallback = null,
-                 bool disallowAutoRedirect      = false,
-                 RequestCachePolicy cachePolicy = null) =>
-            Http(url, request =>
+        public static Func<HttpWebResponse> Post(Uri url, string mediaType,
+            Func<Stream> streamFactory, Action<HttpWebRequest> requestModifier)
+        {
+            if (url == null) throw new ArgumentNullException(nameof(url));
+            if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
+
+            return Post(url, requestModifier, new ContentType { MediaType = mediaType }, output =>
+            {
+                using (var input = streamFactory())
+                    input.CopyTo(output);
+            });
+        }
+
+        public static Func<HttpWebResponse> Post(Uri url, string data, string mediaType, Encoding encoding) =>
+            Post(url, data, mediaType, encoding, null);
+
+        public static Func<HttpWebResponse> Post(Uri url, string data, string mediaType, Encoding encoding, Action<HttpWebRequest> requestModifier)
+        {
+            if (url == null) throw new ArgumentNullException(nameof(url));
+
+            encoding = encoding ?? Encoding.GetEncoding("ISO-8859-1");
+
+            var contentType = new ContentType
+            {
+                MediaType = mediaType,
+                CharSet   = encoding.WebName
+            };
+
+            return Post(url, requestModifier, contentType, sr =>
+            {
+                var bytes = encoding.GetBytes(data);
+                sr.Write(bytes, 0, bytes.Length);
+            });
+        }
+
+        static Func<HttpWebResponse> Post(Uri url, Action<HttpWebRequest> requestModifier, ContentType contentType, Action<Stream> poster)
+        {
+            if (url == null) throw new ArgumentNullException(nameof(url));
+            if (contentType == null) throw new ArgumentNullException(nameof(contentType));
+            if (poster == null) throw new ArgumentNullException(nameof(poster));
+
+            return () =>
+            {
+                var request = CreateHttpRequest(url, requestModifier);
+                request.Method = "POST";
+                request.ContentType = contentType.ToString();
+
+                using (var stream = request.GetRequestStream())
+                    poster(stream);
+
+                return (HttpWebResponse) request.GetResponse();
+            };
+        }
+
+        public static Func<HttpWebResponse> Post(Uri url, NameValueCollection form) =>
+            Post(url, form, null);
+
+        public static Func<HttpWebResponse> Post(Uri url, NameValueCollection form, Action<HttpWebRequest> requestModifier)
+        {
+            return Post(url, W3FormEncode(form), "application/x-www-form-urlencoded", Encoding.ASCII, requestModifier);
+
+            string W3FormEncode(NameValueCollection collection)
+            {
+                if (collection == null) throw new ArgumentNullException(nameof(collection));
+
+                if (collection.Count == 0)
+                    return string.Empty;
+
+                var sb = new StringBuilder();
+
+                var names = collection.AllKeys;
+                for (var i = 0; i < names.Length; i++)
+                {
+                    var name = names[i];
+                    var values = collection.GetValues(i);
+
+                    if (values == null)
+                        continue;
+
+                    foreach (var value in values)
+                    {
+                        if (sb.Length > 0)
+                            sb.Append('&');
+
+                        if (!string.IsNullOrEmpty(name))
+                            sb.Append(name).Append('=');
+
+                        sb.Append(string.IsNullOrEmpty(value)
+                                  ? string.Empty
+                                  : Uri.EscapeDataString(value));
+                    }
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        static HttpWebRequest CreateHttpRequest(Uri url, Action<HttpWebRequest> requestModifier)
+        {
+            var request = WebRequest.CreateHttp(url);
+            requestModifier?.Invoke(request);
+            return request;
+        }
+
+        public static Action<HttpWebRequest> WebRequestSetup(
+                string accept                  = null,
+                string userAgent               = null,
+                NameValueCollection headers    = null,
+                bool useDefaultCredentials     = false,
+                ICredentials credentials       = null,
+                bool preAuthenticate           = false,
+                DateTime? ifModifiedSince      = null,
+                TimeSpan? timeout              = null,
+                TimeSpan? readWriteTimeout     = null,
+                IWebProxy proxy                = null,
+                DecompressionMethods automaticDecompression = DecompressionMethods.None,
+                string referer                 = null,
+                RemoteCertificateValidationCallback serverCertificateValidationCallback = null,
+                bool disallowAutoRedirect      = false,
+                RequestCachePolicy cachePolicy = null) =>
+            request =>
             {
                 if ((request.Credentials = credentials) == null)
                 {
@@ -99,6 +216,6 @@ namespace Dsv
                 request.ServerCertificateValidationCallback = serverCertificateValidationCallback;
                 request.AllowAutoRedirect = !disallowAutoRedirect;
                 if (cachePolicy != null) request.CachePolicy = cachePolicy;
-            });
+            };
     }
 }

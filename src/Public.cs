@@ -13,4 +13,5 @@ namespace Dsv
     public partial class DataColumnSetup {}
     public partial class DataColumnOptions {}
     public partial class Source {}
+    public partial class Http {}
 }
