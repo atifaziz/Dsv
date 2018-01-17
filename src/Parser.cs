@@ -189,7 +189,7 @@ namespace Dsv
                     state = State.AtFieldStart;
                 }
                 ln++;
-                if (state != State.InQuotedField)
+                if (state != State.InQuotedField && state != State.Escaping)
                 {
                     rln++;
                     if (rowFilter(line))
@@ -280,6 +280,7 @@ namespace Dsv
 
                 switch (state)
                 {
+                    case State.Escaping:
                     case State.InQuotedField:
                         sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
                         return null;

@@ -357,6 +357,8 @@ Expected:
 
 ## Unquoted Escape
 
+### Single-Line Rows
+
 Suppose:
 
 - quote is `null`
@@ -379,6 +381,40 @@ Expected:
     { ln: 3, row: ["foo,bar", "baz" ] },
     { ln: 4, row: ["foo", "bar,baz" ] },
     { ln: 5, row: [",", ",", "," ] },
+]
+```
+
+### Multi-Line Rows
+
+Suppose:
+
+- quote is `null`
+- escape is `\`
+
+```
+Name,Street,Postal
+Axel Burns,nunc@example.com,P.O. Box 648\
+7266 Ipsum Street,TJ7 4LC
+Akeem Oneill,penatibus@example.com,880-5079 Ipsum St.,IJ44 7TH
+Bruce Drake,felis@example.com,P.O. Box 968\
+6765 Aliquam Ave,A4 8SZ
+Kermit Carr,leo@example.com,Ap #922-804 Urna Rd.,NR09 2LM
+Fitzgerald Allison,ullamcorper@example.com,P.O. Box 117\
+4098 Erat Street,W1 5US
+Zeus Shannon,fusce@example.com,261-3752 Turpis. Rd.,FG69 4CF
+```
+
+Expected:
+
+```json
+[
+    { ln:  1, row: ["Name", "Street", "Postal"] },
+    { ln:  2, row: ["Axel Burns", "nunc@example.com", "P.O. Box 648\n7266 Ipsum Street", "TJ7 4LC"] },
+    { ln:  4, row: ["Akeem Oneill", "penatibus@example.com", "880-5079 Ipsum St.", "IJ44 7TH"] },
+    { ln:  5, row: ["Bruce Drake", "felis@example.com", "P.O. Box 968\n6765 Aliquam Ave", "A4 8SZ"] },
+    { ln:  7, row: ["Kermit Carr", "leo@example.com", "Ap #922-804 Urna Rd.", "NR09 2LM"] },
+    { ln:  8, row: ["Fitzgerald Allison", "ullamcorper@example.com", "P.O. Box 117\n4098 Erat Street", "W1 5US"] },
+    { ln: 10, row: ["Zeus Shannon", "fusce@example.com", "261-3752 Turpis. Rd.", "FG69 4CF"] },
 ]
 ```
 
