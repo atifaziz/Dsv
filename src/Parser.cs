@@ -278,28 +278,29 @@ namespace Dsv
                     }
                 }
 
-                if (state != State.InQuotedField)
+                switch (state)
                 {
-                    if (state == State.AtFieldStart
-                        || state == State.InField
-                        || state == State.QuoteQuote)
-                    {
+                    case State.InQuotedField:
+                        sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
+                        return null;
+
+                    case State.AtFieldStart:
+                    case State.InField:
+                    case State.QuoteQuote:
                         CommitField(State.AwaitNextRow);
-                    }
-                    else
-                    {
+                        break;
+
+                    default:
                         state = State.AwaitNextRow;
-                    }
-                    if (fc < size)
-                    {
-                        Array.Resize(ref fields, fc);
-                        size = fc;
-                    }
-                    return new TextRow(rln, fields);
+                        break;
                 }
 
-                sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
-                return null;
+                if (fc < size)
+                {
+                    Array.Resize(ref fields, fc);
+                    size = fc;
+                }
+                return new TextRow(rln, fields);
             }
 
             Exception OnEoi() =>
