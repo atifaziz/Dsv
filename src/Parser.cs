@@ -45,7 +45,7 @@ namespace Dsv
         public Format WithDelimiter(char value) =>
             value == Delimiter ? this : new Format(value, Quote, Escape, NewLine);
 
-        public Format Unquoted() => WithQuote(null).WithEscape('\0');
+        public Format Unquoted() => WithQuote(null).WithEscape('\\');
 
         public Format WithQuote(char? value) =>
             value == Quote ? this : new Format(Delimiter, value, Escape, NewLine);
@@ -207,6 +207,10 @@ namespace Dsv
                             {
                                 state = State.InQuotedField;
                             }
+                            else if (ch == escape && quote == null)
+                            {
+                                state = State.Escaping;
+                            }
                             else if (ch == delimiter)
                             {
                                 CommitField(state);
@@ -221,6 +225,8 @@ namespace Dsv
                         case State.InField:
                             if (ch == delimiter)
                                 CommitField(State.AtFieldStart);
+                            else if (ch == escape && quote == null)
+                                state = State.Escaping;
                             else
                                 sb.Append(ch);
                             break;
@@ -235,7 +241,9 @@ namespace Dsv
 
                         case State.Escaping:
                             sb.Append(ch);
-                            state = State.InQuotedField;
+                            state = quote != null
+                                   ? State.InQuotedField
+                                   : State.InField;
                             break;
 
                         case State.QuoteQuote:

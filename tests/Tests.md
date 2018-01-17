@@ -257,25 +257,6 @@ Expected:
 ]
 ```
 
-## Disallow Rows on Multiple Lines
-
-Suppose:
-
-- newline is `null`
-
-```
-Name,Street,Postal
-Axel Burns,nunc@example.com,"P.O. Box 648
-7266 Ipsum Street",TJ7 4LC
-Akeem Oneill,penatibus@example.com,880-5079 Ipsum St.,IJ44 7TH
-```
-
-Throws:
-
-```
-System.FormatException: Unclosed quoted field (line #2, col #42).
-```
-
 ## Quotes in Fields
 
 Suppose:
@@ -350,6 +331,7 @@ Expected:
 Suppose:
 
 - quote is `null`
+- escape is `\`
 
 ```
 "foo",bar,baz
@@ -373,9 +355,38 @@ Expected:
 ]
 ```
 
+## Unquoted Escape
+
+Suppose:
+
+- quote is `null`
+- escape is `\`
+
+```
+foo,bar,baz
+foo\,bar\,baz
+foo\,bar,baz
+foo,bar\,baz
+\,,\,,\,
+```
+
+Expected:
+
+```json
+[
+    { ln: 1, row: ["foo", "bar", "baz" ] },
+    { ln: 2, row: ["foo,bar,baz" ] },
+    { ln: 3, row: ["foo,bar", "baz" ] },
+    { ln: 4, row: ["foo", "bar,baz" ] },
+    { ln: 5, row: [",", ",", "," ] },
+]
+```
+
 ## Errors
 
 ### Unclosed Blank Quoted Field
+
+#### Multi-Line
 
 Suppose:
 
@@ -389,7 +400,26 @@ Throws:
 System.FormatException: Unclosed quoted field (line #1, col #1).
 ```
 
+#### Single-Line
+
+Suppose:
+
+- newline is `null`
+
+```
+"
+"
+```
+
+Throws:
+
+```
+System.FormatException: Unclosed quoted field (line #1, col #2).
+```
+
 ### Unclosed Non-Blank Quoted Field
+
+#### Multi-Line
 
 Suppose:
 
@@ -402,6 +432,23 @@ Throws:
 
 ```
 System.FormatException: Unclosed quoted field (line #2, col #8).
+```
+
+#### Single-Line
+
+Suppose:
+
+- newline is `null`
+
+```
+foo,"bar,
+baz"
+```
+
+Throws:
+
+```
+System.FormatException: Unclosed quoted field (line #1, col #10).
 ```
 
 ### Missing Delimiter

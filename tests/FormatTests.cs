@@ -71,8 +71,8 @@ namespace Dsv.Tests
                 Assert.Null(Format.UnquotedCsv.Quote);
 
             [Fact]
-            public void EscapeIsNullChar() =>
-                Assert.Equal('\0', Format.UnquotedCsv.Escape);
+            public void EscapeIsBackslash() =>
+                Assert.Equal('\\', Format.UnquotedCsv.Escape);
 
             [Fact]
             public void NewLineIsLineFeed() =>
@@ -180,7 +180,7 @@ namespace Dsv.Tests
             {
                 var @base = Format.Csv;
                 var unquoted = @base.Unquoted();
-                Assert.Equal('\0', unquoted.Escape);
+                Assert.Equal('\\', unquoted.Escape);
                 Assert.NotEqual(unquoted.Escape, @base.Escape);
             }
         }
