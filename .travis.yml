@@ -1,7 +1,6 @@
 language: csharp
 os:
   - linux
-solution: High5.sln
 dist: trusty
 sudo: required
 dotnet: 2.0.0
