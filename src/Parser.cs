@@ -103,6 +103,21 @@ namespace Dsv
         void IList<string>.RemoveAt(int index)            => throw ReadOnlyError();
     }
 
+    public static class TextRowExtensions
+    {
+        public static T FindWithIndex<T>(
+            this TextRow row,
+            Func<string, bool> predicate,
+            Func<string, int, T> resultor)
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+            if (resultor == null) throw new ArgumentNullException(nameof(resultor));
+
+            var i = row.FindIndex(s => predicate(s));
+            return i >= 0 ? resultor(row[i], i) : resultor(null, i);
+        }
+    }
+
     static partial class Parser
     {
         enum State
