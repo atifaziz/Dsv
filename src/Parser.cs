@@ -105,7 +105,7 @@ namespace Dsv
 
     public static class TextRowExtensions
     {
-        public static T FindWithIndex<T>(
+        public static T Find<T>(
             this TextRow row,
             Func<string, bool> predicate,
             Func<string, int, T> resultor)
