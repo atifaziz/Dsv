@@ -21,6 +21,53 @@ namespace Dsv
 
     partial class Parser
     {
+        public static IObservable<TRow> ParseCsv<THead, TRow>(this IObservable<string> lines,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector) =>
+            lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+
+        public static IObservable<TRow> ParseDsv<THead, TRow>(this IObservable<string> lines,
+            Format format,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector) =>
+            lines.ParseDsv(format, _ => false, headSelector, rowSelector);
+
+        public static IObservable<TRow> ParseDsv<THead, TRow>(this IObservable<string> lines,
+            Format format,
+            Func<string, bool> rowFilter,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector)
+        {
+            if (lines == null) throw new ArgumentNullException(nameof(lines));
+            if (format == null) throw new ArgumentNullException(nameof(format));
+            if (rowFilter == null) throw new ArgumentNullException(nameof(rowFilter));
+            if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
+            if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
+
+            return Observable.Create((IObserver<TRow> o) =>
+            {
+                var haveHead = false;
+                var head = default(THead);
+
+                return lines
+                        .ParseDsv(format, rowFilter)
+                        .Subscribe(row =>
+                            {
+                                if (!haveHead)
+                                {
+                                    head = headSelector(row);
+                                    haveHead = true;
+                                }
+                                else
+                                {
+                                    o.OnNext(rowSelector(head, row));
+                                }
+                            },
+                            o.OnError,
+                            o.OnCompleted);
+            });
+        }
+
         public static IObservable<TextRow>
             ParseCsv(this IObservable<string> lines) =>
                 lines.ParseDsv(Format.Csv);

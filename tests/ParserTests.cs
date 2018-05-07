@@ -18,6 +18,7 @@ namespace Dsv.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Reactive.Linq;
     using System.Reflection;
@@ -164,5 +165,89 @@ namespace Dsv.Tests
             return data.ToTheoryData();
         }
 
+        [Fact]
+        public void ParseCsvHeaderBindingWithEnumerable()
+        {
+            const string csv
+                = "baz,foo,bar\n"
+                + "789,123,456\n";
+
+            var data = csv
+                .SplitIntoLines()
+                .ParseCsv(
+                    row => new
+                    {
+                        Foo = row.FindIndex(h => h == "foo"),
+                        Bar = row.FindIndex(h => h == "bar"),
+                        Baz = row.FindIndex(h => h == "baz"),
+                    },
+                    (i, row) => new[]
+                    {
+                        row[i.Foo],
+                        row[i.Bar],
+                        row[i.Baz],
+                    })
+                .Select(row =>
+                    row.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
+                       .Fold((foo, bar, baz) => new
+                       {
+                           Foo = foo,
+                           Bar = bar,
+                           Baz = baz
+                       }));
+
+            var expected = new
+            {
+                Foo = 123,
+                Bar = 456,
+                Baz = 789
+            };
+
+            Assert.Equal(expected, data.Single());
+        }
+
+        [Fact]
+        public void ParseCsvWithHeaderBindingWithObservable()
+        {
+            const string csv
+                = "baz,foo,bar\n"
+                  + "789,123,456\n";
+
+            var data = csv
+                .SplitIntoLines()
+                .ToObservable()
+                .ParseCsv(
+                    row => new
+                    {
+                        Foo = row.FindIndex(h => h == "foo"),
+                        Bar = row.FindIndex(h => h == "bar"),
+                        Baz = row.FindIndex(h => h == "baz"),
+                    },
+                    (h, row) => new[]
+                    {
+                        row[h.Foo],
+                        row[h.Bar],
+                        row[h.Baz],
+                    })
+                .Select(row =>
+                    row.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
+                       .Fold((foo, bar, baz) => new
+                       {
+                           Foo = foo,
+                           Bar = bar,
+                           Baz = baz
+                       }));
+
+            var result = data.SingleAsync().GetAwaiter().GetResult();
+
+            var expected = new
+            {
+                Foo = 123,
+                Bar = 456,
+                Baz = 789
+            };
+
+            Assert.Equal(expected, result);
+        }
     }
 }

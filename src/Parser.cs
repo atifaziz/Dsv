@@ -131,6 +131,38 @@ namespace Dsv
             AwaitNextRow
         }
 
+        public static IEnumerable<TRow> ParseCsv<THead, TRow>(this IEnumerable<string> lines,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector) =>
+            lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+
+        public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
+            Format format,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector) =>
+            lines.ParseDsv(format, _ => false, headSelector, rowSelector);
+
+        public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
+            Format format,
+            Func<string, bool> rowFilter,
+            Func<TextRow, THead> headSelector,
+            Func<THead, TextRow, TRow> rowSelector)
+        {
+            return _(); IEnumerable<TRow> _()
+            {
+                using (var row = lines.ParseDsv(format, rowFilter).GetEnumerator())
+                {
+                    if (!row.MoveNext())
+                        yield break;
+
+                    var head = headSelector(row.Current);
+
+                    while (row.MoveNext())
+                        yield return rowSelector(head, row.Current);
+                }
+            }
+        }
+
         /// <summary>
         /// Parses CSV data from a sequnce of lines, allowing quoted
         /// fields and using two quotes to escape quote within a quoted
