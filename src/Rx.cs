@@ -47,20 +47,19 @@ namespace Dsv
             {
                 var (onLine, onEoi) = Create(format, rowFilter);
                 return lines.Subscribe(
-                    Observer.Create(
-                        onNext: (string line) =>
-                        {
-                            if (onLine(line) is TextRow row)
-                                o.OnNext(row);
-                        },
-                        onError: o.OnError,
-                        onCompleted: () =>
-                        {
-                            if (onEoi() is Exception e)
-                                o.OnError(e);
-                            else
-                                o.OnCompleted();
-                        }));
+                    onNext: line =>
+                    {
+                        if (onLine(line) is TextRow row)
+                            o.OnNext(row);
+                    },
+                    onError: o.OnError,
+                    onCompleted: () =>
+                    {
+                        if (onEoi() is Exception e)
+                            o.OnError(e);
+                        else
+                            o.OnCompleted();
+                    });
             });
         }
     }
@@ -74,6 +73,35 @@ namespace Dsv.Reactive
     {
         public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscriptionHandler) =>
             new Observable<T>(subscriptionHandler);
+
+        public static IDisposable Subscribe<T>(this IObservable<T> source,
+            Action<T> onNext, Action<Exception> onError, Action onCompleted)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (onNext == null) throw new ArgumentNullException(nameof(onNext));
+            if (onError == null) throw new ArgumentNullException(nameof(onError));
+            if (onCompleted == null) throw new ArgumentNullException(nameof(onCompleted));
+
+            try
+            {
+                return source.Subscribe(Observer.Create(onNext, onError, onCompleted));
+            }
+            catch (Exception e)
+            {
+                onError(e);
+                return Disposable.Nop;
+            }
+        }
+    }
+
+    static class Disposable
+    {
+        public static readonly IDisposable Nop = new NopDisposable();
+
+        sealed class NopDisposable : IDisposable
+        {
+            public void Dispose() {}
+        }
     }
 
     static class Observer
