@@ -20,6 +20,7 @@ namespace Dsv
     using System.Collections;
     using System.Collections.Generic;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     sealed partial class Format
     {
@@ -115,6 +116,28 @@ namespace Dsv
 
             var i = row.FindIndex(s => predicate(s));
             return i >= 0 ? resultor(row[i], i) : resultor(null, i);
+        }
+
+        public static T Match<T>(
+            this TextRow row, string pattern,
+            Func<Match, int, T> resultor) =>
+            Match(row, pattern, RegexOptions.None, resultor);
+
+        public static T Match<T>(
+            this TextRow row, string pattern, RegexOptions options,
+            Func<Match, int, T> resultor)
+        {
+            if (resultor == null) throw new ArgumentNullException(nameof(resultor));
+
+            for (var i = 0; i < row.Count; i++)
+            {
+                var v = row[i];
+                var match = Regex.Match(v, pattern, options);
+                if (match.Success)
+                    return resultor(match, i);
+            }
+
+            return resultor(null, -1);
         }
     }
 
