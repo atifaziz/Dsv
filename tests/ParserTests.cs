@@ -177,9 +177,9 @@ namespace Dsv.Tests
                 .ParseCsv(
                     row => new
                     {
-                        Foo = row.FindIndex(h => h == "foo"),
-                        Bar = row.FindIndex(h => h == "bar"),
-                        Baz = row.FindIndex(h => h == "baz"),
+                        Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
+                        Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
+                        Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
                     },
                     (i, row) => new[]
                     {
@@ -219,9 +219,9 @@ namespace Dsv.Tests
                 .ParseCsv(
                     row => new
                     {
-                        Foo = row.FindIndex(h => h == "foo"),
-                        Bar = row.FindIndex(h => h == "bar"),
-                        Baz = row.FindIndex(h => h == "baz"),
+                        Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
+                        Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
+                        Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
                     },
                     (h, row) => new[]
                     {

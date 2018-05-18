@@ -240,19 +240,19 @@ namespace Dsv
             Header(name, StringComparison.OrdinalIgnoreCase);
 
         public DataColumnSetup Header(string name, StringComparison comparison) =>
-            Binder((_, hs) => hs.FindIndex(h => string.Equals(h, name, comparison)));
+            Binder((_, hs) => hs.FindFirstIndex(name, comparison) ?? -1);
 
         public DataColumnSetup ColumnNameComparison(StringComparison comparison) =>
-            Binder((dc, hs) => hs.FindIndex(h => string.Equals(h, dc.ColumnName, comparison)));
+            Binder((dc, hs) => hs.FindFirstIndex(dc.ColumnName, comparison) ?? -1);
 
         public DataColumnSetup HeaderRegex(Regex regex) =>
-            Binder((dc, hs) => hs.FindIndex(regex.IsMatch));
+            Binder((dc, hs) => hs.FindFirstIndex(regex.IsMatch) ?? -1);
 
         public DataColumnSetup HeaderRegex(string pattern) =>
             HeaderRegex(pattern, RegexOptions.None);
 
         public DataColumnSetup HeaderRegex(string pattern, RegexOptions options) =>
-            Binder((dc, hs) => hs.FindIndex(h => Regex.IsMatch(h, pattern, options)));
+            Binder((dc, hs) => hs.FindFirstIndex(h => Regex.IsMatch(h, pattern, options)) ?? -1);
     }
 
     partial interface IDataTableBuilder
@@ -354,7 +354,8 @@ namespace Dsv
                         {
                             e.Column,
                             Index = e.Options.Binder?.Invoke(e.Column, row.Current)
-                                    ?? row.Current.FindIndex(h => string.Equals(h, e.Column.ColumnName, StringComparison.OrdinalIgnoreCase)),
+                                    ?? row.Current.FindFirstIndex(h => string.Equals(h, e.Column.ColumnName, StringComparison.OrdinalIgnoreCase))
+                                    ?? -1,
                             e.Options.Converter,
                         }
                         into e

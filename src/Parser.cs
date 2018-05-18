@@ -19,6 +19,7 @@ namespace Dsv
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
 
@@ -87,7 +88,6 @@ namespace Dsv
             GetEnumerator();
 
         public int IndexOf(string item) => Array.IndexOf(Fields, item);
-        public int FindIndex(Predicate<string> predicate) => Array.FindIndex(Fields, predicate);
         public bool Contains(string item) => IndexOf(item) >= 0;
         public void CopyTo(string[] array, int arrayIndex) => Fields.CopyTo(array, arrayIndex);
 
@@ -106,39 +106,83 @@ namespace Dsv
 
     public static class TextRowExtensions
     {
-        public static T Find<T>(
-            this TextRow row,
-            Func<string, bool> predicate,
-            Func<string, int, T> resultor)
+        public static int? FindFirstIndex(this TextRow row, string sought) =>
+            row.FindFirstIndex(sought, StringComparison.Ordinal);
+
+        public static IEnumerable<int> FindIndex(this TextRow row, string sought) =>
+            row.FindIndex(sought, StringComparison.Ordinal);
+
+        public static int? FindFirstIndex(this TextRow row,
+            string sought, StringComparison comparison) =>
+            row.FindFirstIndex(s => string.Equals(s, sought, comparison));
+
+        public static IEnumerable<int> FindIndex(this TextRow row,
+            string sought, StringComparison comparison) =>
+            row.Find(sought, comparison, (_, i) => i);
+
+        public static int? FindFirstIndex(this TextRow row, Func<string, bool> predicate)
         {
-            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-            if (resultor == null) throw new ArgumentNullException(nameof(resultor));
-
-            var i = row.FindIndex(s => predicate(s));
-            return i >= 0 ? resultor(row[i], i) : resultor(null, i);
-        }
-
-        public static T Match<T>(
-            this TextRow row, string pattern,
-            Func<Match, int, T> resultor) =>
-            Match(row, pattern, RegexOptions.None, resultor);
-
-        public static T Match<T>(
-            this TextRow row, string pattern, RegexOptions options,
-            Func<Match, int, T> resultor)
-        {
-            if (resultor == null) throw new ArgumentNullException(nameof(resultor));
-
             for (var i = 0; i < row.Count; i++)
             {
-                var v = row[i];
-                var match = Regex.Match(v, pattern, options);
-                if (match.Success)
-                    return resultor(match, i);
+                if (predicate(row[i]))
+                    return i;
             }
 
-            return resultor(null, -1);
+            return null;
         }
+
+        public static IEnumerable<int> FindIndex(this TextRow row, Func<string, bool> predicate) =>
+            row.Find((s, i) => predicate(s) is bool matched && matched
+                             ? (true, i) : (false, default));
+
+        public static IEnumerable<T> Find<T>(this TextRow row,
+            string sought, Func<string, int, T> resultSelector) =>
+            Find(row, sought, StringComparison.Ordinal, resultSelector);
+
+        public static IEnumerable<T> Find<T>(this TextRow row,
+            string sought, StringComparison comparison, Func<string, int, T> resultSelector) =>
+            row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched && matched
+                             ? (true, resultSelector(s, i))
+                             : (false, default));
+
+        public static IEnumerable<T> Find<T>(this TextRow row,
+            Func<string, int, (bool, T)> predicate)
+        {
+            if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+
+            return _(); IEnumerable<T> _()
+            {
+                for (var i = 0; i < row.Count; i++)
+                {
+                    var (matched, result) = predicate(row[i], i);
+                    if (matched)
+                        yield return result;
+                }
+            }
+        }
+
+        public static T MatchFirst<T>(this TextRow row,
+            string pattern, Func<string, int, Match, T> predicate) =>
+            row.Match(pattern, predicate).First();
+
+        public static IEnumerable<T> Match<T>(this TextRow row,
+            string pattern, Func<string, int, Match, T> predicate) =>
+            Match(row, pattern, RegexOptions.None, predicate);
+
+        public static T MatchFirst<T>(this TextRow row,
+            string pattern, RegexOptions options,
+            Func<string, int, Match, T> predicate) =>
+            row.Match(pattern, options, predicate).First();
+
+        public static IEnumerable<T> Match<T>(this TextRow row,
+            string pattern, RegexOptions options,
+            Func<string, int, Match, T> predicate) =>
+            from e in row.Find((s, i) =>
+            {
+                var m = Regex.Match(s, pattern, options);
+                return (m.Success, (Input: s, Index: i, Match: m));
+            })
+            select predicate(e.Input, e.Index, e.Match);
     }
 
     static partial class Parser
