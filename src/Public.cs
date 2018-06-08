@@ -4,6 +4,7 @@ namespace Dsv
     public partial class Format {}
     public partial class LineReader {}
     public partial struct TextRow {}
+    public partial class TextRowExtensions {}
     public partial class Extensions {}
     public partial class DataTableBuilder {}
     public partial class DataColumnBuilder {}

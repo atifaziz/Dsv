@@ -21,7 +21,7 @@ namespace Dsv
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    public static class TextRowExtensions
+    static partial class TextRowExtensions
     {
         // Methods that get the index of first match; otherwise throw
 
