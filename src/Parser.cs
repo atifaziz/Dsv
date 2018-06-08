@@ -182,13 +182,13 @@ namespace Dsv
             row.MatchFirst(pattern, options, (s, i, _) => (s, i));
 
         public static T MatchFirst<T>(this TextRow row,
-            string pattern, Func<string, int, Match, T> selector) =>
-            row.Match(pattern, selector).First();
+            string pattern, Func<string, int, Match, T> resultSelector) =>
+            row.Match(pattern, resultSelector).First();
 
         public static T MatchFirst<T>(this TextRow row,
             string pattern, RegexOptions options,
-            Func<string, int, Match, T> selector) =>
-            row.Match(pattern, options, selector).First();
+            Func<string, int, Match, T> resultSelector) =>
+            row.Match(pattern, options, resultSelector).First();
 
         public static IEnumerable<(string Field, int Index)>
             Match(this TextRow row, string pattern) =>
@@ -199,18 +199,18 @@ namespace Dsv
             row.Match(pattern, options, (s, i, _) => (s, i));
 
         public static IEnumerable<T> Match<T>(this TextRow row,
-            string pattern, Func<string, int, Match, T> selector) =>
-            Match(row, pattern, RegexOptions.None, selector);
+            string pattern, Func<string, int, Match, T> resultSelector) =>
+            Match(row, pattern, RegexOptions.None, resultSelector);
 
         public static IEnumerable<T> Match<T>(this TextRow row,
             string pattern, RegexOptions options,
-            Func<string, int, Match, T> selector) =>
+            Func<string, int, Match, T> resultSelector) =>
             from e in row.Find((s, i) =>
             {
                 var m = Regex.Match(s, pattern, options);
                 return (m.Success, (Input: s, Index: i, Match: m));
             })
-            select selector(e.Input, e.Index, e.Match);
+            select resultSelector(e.Input, e.Index, e.Match);
     }
 
     static partial class Parser
