@@ -135,6 +135,14 @@ namespace Dsv
             row.Find((s, i) => predicate(s) is bool matched && matched
                              ? (true, i) : (false, default));
 
+        public static IEnumerable<(string Field, int Index)>
+            Find(this TextRow row, string sought) =>
+            Find(row, sought, StringComparison.Ordinal);
+
+        public static IEnumerable<(string Field, int Index)>
+            Find(this TextRow row, string sought, StringComparison comparison) =>
+            row.Find(sought, comparison, ValueTuple.Create);
+
         public static IEnumerable<T> Find<T>(this TextRow row,
             string sought, Func<string, int, T> resultSelector) =>
             Find(row, sought, StringComparison.Ordinal, resultSelector);
@@ -143,7 +151,11 @@ namespace Dsv
             string sought, StringComparison comparison, Func<string, int, T> resultSelector) =>
             row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched && matched
                              ? (true, resultSelector(s, i))
-                             : (false, default));
+                             : default);
+
+        public static IEnumerable<(string Field, int Index)>
+            Find(this TextRow row, Func<string, int, bool> predicate) =>
+            row.Find((s, i) => predicate(s, i) ? (true, (s, i)) : default);
 
         public static IEnumerable<T> Find<T>(this TextRow row,
             Func<string, int, (bool, T)> predicate)
@@ -169,10 +181,26 @@ namespace Dsv
             string pattern, Func<string, int, Match, T> predicate) =>
             Match(row, pattern, RegexOptions.None, predicate);
 
+        public static (string Field, int Index, Match Match)
+            MatchFirst(this TextRow row, string pattern) =>
+            MatchFirst(row, pattern, RegexOptions.None);
+
+        public static (string Field, int Index, Match Match)
+            MatchFirst(this TextRow row, string pattern, RegexOptions options) =>
+            row.MatchFirst(pattern, options, ValueTuple.Create);
+
         public static T MatchFirst<T>(this TextRow row,
             string pattern, RegexOptions options,
             Func<string, int, Match, T> predicate) =>
             row.Match(pattern, options, predicate).First();
+
+        public static IEnumerable<(string Field, int Index, Match Match)>
+            Match(this TextRow row, string pattern) =>
+            Match(row, pattern, RegexOptions.None);
+
+        public static IEnumerable<(string Field, int Index, Match Match)>
+            Match(this TextRow row, string pattern, RegexOptions options) =>
+            row.Match(pattern, options, ValueTuple.Create);
 
         public static IEnumerable<T> Match<T>(this TextRow row,
             string pattern, RegexOptions options,
