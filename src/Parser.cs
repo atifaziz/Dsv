@@ -173,14 +173,6 @@ namespace Dsv
             }
         }
 
-        public static T MatchFirst<T>(this TextRow row,
-            string pattern, Func<string, int, Match, T> selector) =>
-            row.Match(pattern, selector).First();
-
-        public static IEnumerable<T> Match<T>(this TextRow row,
-            string pattern, Func<string, int, Match, T> selector) =>
-            Match(row, pattern, RegexOptions.None, selector);
-
         public static (string Field, int Index)
             MatchFirst(this TextRow row, string pattern) =>
             MatchFirst(row, pattern, RegexOptions.None);
@@ -188,6 +180,10 @@ namespace Dsv
         public static (string Field, int Index)
             MatchFirst(this TextRow row, string pattern, RegexOptions options) =>
             row.MatchFirst(pattern, options, (s, i, _) => (s, i));
+
+        public static T MatchFirst<T>(this TextRow row,
+            string pattern, Func<string, int, Match, T> selector) =>
+            row.Match(pattern, selector).First();
 
         public static T MatchFirst<T>(this TextRow row,
             string pattern, RegexOptions options,
@@ -201,6 +197,10 @@ namespace Dsv
         public static IEnumerable<(string Field, int Index)>
             Match(this TextRow row, string pattern, RegexOptions options) =>
             row.Match(pattern, options, (s, i, _) => (s, i));
+
+        public static IEnumerable<T> Match<T>(this TextRow row,
+            string pattern, Func<string, int, Match, T> selector) =>
+            Match(row, pattern, RegexOptions.None, selector);
 
         public static IEnumerable<T> Match<T>(this TextRow row,
             string pattern, RegexOptions options,
