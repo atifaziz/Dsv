@@ -14,7 +14,7 @@
 //
 #endregion
 
-namespace Dsv
+namespace Dsv.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Dsv
     using System.Net.Http;
     using System.Text;
 
-    static partial class LineReader
+    static class LineReader
     {
         public static IEnumerable<string> SplitIntoLines(this string input) =>
             ReadLines(() => new StringReader(input));

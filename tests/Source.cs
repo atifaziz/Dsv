@@ -14,13 +14,13 @@
 //
 #endregion
 
-namespace Dsv
+namespace Dsv.Tests
 {
     using System;
     using System.IO;
     using System.Text;
 
-    static partial class Source
+    static class Source
     {
         public static Func<FileStream> File(string path) =>
             () => new FileStream(path, FileMode.Open);
@@ -42,7 +42,7 @@ namespace Dsv
     }
 }
 
-namespace Dsv
+namespace Dsv.Tests
 {
     using System;
     using System.Collections.Specialized;
@@ -53,7 +53,7 @@ namespace Dsv
     using System.Net.Security;
     using System.Text;
 
-    static partial class Http
+    static class Http
     {
         public static Func<HttpWebResponse> Get(Uri url) =>
             Get(url, null);
