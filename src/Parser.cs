@@ -69,7 +69,13 @@ namespace Dsv
 
         public int LineNumber { get; }
 
-        string[] Fields => _fields ?? Array.Empty<string>();
+        string[] Fields => _fields ??
+        #if NETSTANDARD1_0
+                           (_zeroFields ?? (_zeroFields = new string[0]));
+                           static string[] _zeroFields;
+        #else
+                           Array.Empty<string>();
+        #endif
 
         public string this[int index] => Fields[index];
 
