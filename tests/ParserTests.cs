@@ -78,6 +78,17 @@ namespace Dsv.Tests
             }
 
             [Fact]
+            public void ParseWithNullRowSelectorThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    new string[0].ParseDsv<object, object>(Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : null));
+                Assert.Equal("rowSelector", e.ParamName);
+            }
+
+            [Fact]
             public void ParseIsLazy()
             {
                 IEnumerable<string> Lines()
@@ -145,6 +156,17 @@ namespace Dsv.Tests
             }
 
             [Fact]
+            public void ParseWithNullRowSelectorThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    Observable.Empty<string>().ParseDsv<object, object>(Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : null));
+                Assert.Equal("rowSelector", e.ParamName);
+            }
+
+            [Fact]
             public void ParseIsLazy()
             {
                 IObservable<string> Lines() => throw new InvalidOperationException();
@@ -159,16 +181,6 @@ namespace Dsv.Tests
             }
         }
 
-        [Fact]
-        public void ParseWithNullRowSelectorThrows()
-        {
-            var e = Assert.Throws<ArgumentNullException>(() =>
-                new string[0].ParseDsv<object, object>(Format.Csv,
-                    lineFilter  : delegate { throw new NotImplementedException(); },
-                    headSelector: delegate { throw new NotImplementedException(); },
-                    rowSelector : null));
-            Assert.Equal("rowSelector", e.ParamName);
-        }
 
         static void ParseDsv(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
                              IEnumerable<(int Line, string[] Fields)> rows,
