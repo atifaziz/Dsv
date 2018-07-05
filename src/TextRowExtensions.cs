@@ -92,8 +92,8 @@ namespace Dsv
         {
             using (var e = row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched
                                               && matched
-                ? (true, someSelector(s, i))
-                : default).GetEnumerator())
+                                            ? (true, someSelector(s, i))
+                                            : default).GetEnumerator())
             {
                 return e.MoveNext() ? e.Current : noneSelector();
             }
@@ -108,9 +108,9 @@ namespace Dsv
         public static T GetFirstField<T>(this TextRow row,
             string sought, StringComparison comparison, Func<string, int, T> resultSelector) =>
             row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched && matched
-                    ? (true, resultSelector(s, i))
-                    : default)
-                .First();
+                             ? (true, resultSelector(s, i))
+                             : default)
+               .First();
 
         // Methods that find the first field matching a pattern; otherwise
         // return an alternative when none match.
