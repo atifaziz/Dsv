@@ -178,7 +178,7 @@ namespace Dsv
         }
 
         /// <summary>
-        /// Parses CSV data from a sequnce of lines, allowing quoted
+        /// Parses CSV data from a sequence of lines, allowing quoted
         /// fields and using two quotes to escape quote within a quoted
         /// field.
         /// </summary>
