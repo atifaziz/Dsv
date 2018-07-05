@@ -76,6 +76,24 @@ namespace Dsv.Tests
         }
 
         [Fact]
+        public void ParseIsLazy()
+        {
+            IEnumerable<string> Lines()
+            {
+                throw new InvalidOperationException();
+                #pragma warning disable 162
+                yield return null;
+                #pragma warning restore 162
+            }
+
+            Lines().ParseDsv<object, object>(
+                format: Format.Csv,
+                rowFilter   : delegate { throw new NotImplementedException(); },
+                headSelector: delegate { throw new NotImplementedException(); },
+                rowSelector : delegate { throw new NotImplementedException(); });
+        }
+
+        [Fact]
         public void ParseWithNullRowSelectorThrows()
         {
             var e = Assert.Throws<ArgumentNullException>(() =>
