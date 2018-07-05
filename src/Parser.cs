@@ -134,19 +134,19 @@ namespace Dsv
 
         public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
             Format format,
-            Func<string, bool> rowFilter,
+            Func<string, bool> lineFilter,
             Func<TextRow, THead> headSelector,
             Func<THead, TextRow, TRow> rowSelector)
         {
             if (lines == null) throw new ArgumentNullException(nameof(lines));
             if (format == null) throw new ArgumentNullException(nameof(format));
-            if (rowFilter == null) throw new ArgumentNullException(nameof(rowFilter));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
             if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
             if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
 
             return _(); IEnumerable<TRow> _()
             {
-                using (var row = lines.ParseDsv(format, rowFilter).GetEnumerator())
+                using (var row = lines.ParseDsv(format, lineFilter).GetEnumerator())
                 {
                     if (!row.MoveNext())
                         yield break;
@@ -168,8 +168,8 @@ namespace Dsv
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines) =>
             lines.ParseDsv(Format.Csv);
 
-        public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> rowFilter) =>
-            lines.ParseDsv(Format.Csv, rowFilter);
+        public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> lineFilter) =>
+            lines.ParseDsv(Format.Csv, lineFilter);
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
@@ -181,9 +181,9 @@ namespace Dsv
             ParseDsv(lines, format, _ => false);
 
         public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
-            Format format, Func<string, bool> rowFilter)
+            Format format, Func<string, bool> lineFilter)
         {
-            var (onLine, onEoi) = Create(format, rowFilter);
+            var (onLine, onEoi) = Create(format, lineFilter);
 
             foreach (var line in lines)
             {
@@ -196,7 +196,7 @@ namespace Dsv
         }
 
         static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
-            Create(Format format, Func<string, bool> rowFilter)
+            Create(Format format, Func<string, bool> lineFilter)
         {
             var delimiter = format.Delimiter;
             var quote     = format.Quote;
@@ -235,7 +235,7 @@ namespace Dsv
                 if (state != State.InQuotedField && state != State.Escaping)
                 {
                     rln++;
-                    if (rowFilter(line))
+                    if (lineFilter(line))
                         return null;
                 }
                 col = 0;

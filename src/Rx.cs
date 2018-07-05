@@ -34,13 +34,13 @@ namespace Dsv
 
         public static IObservable<TRow> ParseDsv<THead, TRow>(this IObservable<string> lines,
             Format format,
-            Func<string, bool> rowFilter,
+            Func<string, bool> lineFilter,
             Func<TextRow, THead> headSelector,
             Func<THead, TextRow, TRow> rowSelector)
         {
             if (lines == null) throw new ArgumentNullException(nameof(lines));
             if (format == null) throw new ArgumentNullException(nameof(format));
-            if (rowFilter == null) throw new ArgumentNullException(nameof(rowFilter));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
             if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
             if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
 
@@ -50,7 +50,7 @@ namespace Dsv
                 var head = default(THead);
 
                 return lines
-                        .ParseDsv(format, rowFilter)
+                        .ParseDsv(format, lineFilter)
                         .Subscribe(row =>
                             {
                                 if (!haveHead)
@@ -74,8 +74,8 @@ namespace Dsv
 
         public static IObservable<TextRow>
             ParseCsv(this IObservable<string> lines,
-                     Func<string, bool> rowFilter) =>
-            lines.ParseDsv(Format.Csv, rowFilter);
+                     Func<string, bool> lineFilter) =>
+            lines.ParseDsv(Format.Csv, lineFilter);
 
         public static IObservable<TextRow>
             ParseDsv(this IObservable<string> lines, Format format) =>
@@ -84,15 +84,15 @@ namespace Dsv
         public static IObservable<TextRow>
             ParseDsv(this IObservable<string> lines,
                      Format format,
-                     Func<string, bool> rowFilter)
+                     Func<string, bool> lineFilter)
         {
             if (lines == null) throw new ArgumentNullException(nameof(lines));
             if (format == null) throw new ArgumentNullException(nameof(format));
-            if (rowFilter == null) throw new ArgumentNullException(nameof(rowFilter));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
 
             return Observable.Create((IObserver<TextRow> o) =>
             {
-                var (onLine, onEoi) = Create(format, rowFilter);
+                var (onLine, onEoi) = Create(format, lineFilter);
                 return lines.Subscribe(
                     onNext: line =>
                     {

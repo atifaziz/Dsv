@@ -35,7 +35,7 @@ namespace Dsv.Tests
             var e = Assert.Throws<ArgumentNullException>(() =>
                 Parser.ParseDsv<object, object>(
                     (IEnumerable<string>) null, Format.Csv,
-                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    lineFilter  : delegate { throw new NotImplementedException(); },
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : delegate { throw new NotImplementedException(); }));
             Assert.Equal("lines", e.ParamName);
@@ -47,7 +47,7 @@ namespace Dsv.Tests
             var e = Assert.Throws<ArgumentNullException>(() =>
                 new string[0].ParseDsv<object, object>(
                     format: null,
-                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    lineFilter  : delegate { throw new NotImplementedException(); },
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : delegate { throw new NotImplementedException(); }));
             Assert.Equal("format", e.ParamName);
@@ -58,10 +58,10 @@ namespace Dsv.Tests
         {
             var e = Assert.Throws<ArgumentNullException>(() =>
                 new string[0].ParseDsv<object, object>(Format.Csv,
-                    rowFilter   : null,
+                    lineFilter  : null,
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : delegate { throw new NotImplementedException(); }));
-            Assert.Equal("rowFilter", e.ParamName);
+            Assert.Equal("lineFilter", e.ParamName);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace Dsv.Tests
         {
             var e = Assert.Throws<ArgumentNullException>(() =>
                 new string[0].ParseDsv<object, object>(Format.Csv,
-                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    lineFilter  : delegate { throw new NotImplementedException(); },
                     headSelector: null,
                     rowSelector : delegate { throw new NotImplementedException(); }));
             Assert.Equal("headSelector", e.ParamName);
@@ -88,7 +88,7 @@ namespace Dsv.Tests
 
             Lines().ParseDsv<object, object>(
                 format: Format.Csv,
-                rowFilter   : delegate { throw new NotImplementedException(); },
+                lineFilter  : delegate { throw new NotImplementedException(); },
                 headSelector: delegate { throw new NotImplementedException(); },
                 rowSelector : delegate { throw new NotImplementedException(); });
         }
@@ -98,7 +98,7 @@ namespace Dsv.Tests
         {
             var e = Assert.Throws<ArgumentNullException>(() =>
                 new string[0].ParseDsv<object, object>(Format.Csv,
-                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    lineFilter  : delegate { throw new NotImplementedException(); },
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : null));
             Assert.Equal("rowSelector", e.ParamName);
@@ -113,15 +113,15 @@ namespace Dsv.Tests
                                               .WithEscape(escape)
                                               .WithNewLine(newline);
 
-            var rowFilter = skipBlanks
-                          ? string.IsNullOrWhiteSpace
-                          : new Func<string, bool>(_ => false);
+            var lineFilter = skipBlanks
+                           ? string.IsNullOrWhiteSpace
+                           : new Func<string, bool>(_ => false);
 
             if (errorType == null)
             {
                 using (var row = rows.GetEnumerator())
                 {
-                    foreach (var fields in rowParser(format, rowFilter))
+                    foreach (var fields in rowParser(format, lineFilter))
                     {
                         Assert.True(row.MoveNext(), "Source has too many rows.");
                         var (ln, fs) = row.Current;
@@ -134,7 +134,7 @@ namespace Dsv.Tests
             }
             else
             {
-                var e = Assert.Throws(errorType, () => rowParser(format, rowFilter).Consume());
+                var e = Assert.Throws(errorType, () => rowParser(format, lineFilter).Consume());
                 Assert.Equal(errorMessage, e.Message);
             }
         }
