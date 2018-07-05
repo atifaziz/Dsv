@@ -325,29 +325,29 @@ namespace Dsv.Tests
                 = "baz,foo,bar\n"
                 + "789,123,456\n";
 
-            var data = csv
-                .SplitIntoLines()
-                .ParseCsv(
-                    row => new
-                    {
-                        Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
-                        Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
-                        Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
-                    },
-                    (i, row) => new[]
-                    {
-                        row[i.Foo],
-                        row[i.Bar],
-                        row[i.Baz],
-                    })
-                .Select(row =>
-                    row.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
-                       .Fold((foo, bar, baz) => new
-                       {
-                           Foo = foo,
-                           Bar = bar,
-                           Baz = baz
-                       }));
+            var data =
+                from e in csv.SplitIntoLines()
+                             .ParseCsv(row => new
+                             {
+                                 Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
+                                 Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
+                                 Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
+                             })
+
+                select new[]
+                {
+                    e.Row[e.Head.Foo],
+                    e.Row[e.Head.Bar],
+                    e.Row[e.Head.Baz],
+                }
+                into e
+                select e.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
+                        .Fold((foo, bar, baz) => new
+                        {
+                            Foo = foo,
+                            Bar = bar,
+                            Baz = baz
+                        });
 
             var expected = new
             {
@@ -364,32 +364,32 @@ namespace Dsv.Tests
         {
             const string csv
                 = "baz,foo,bar\n"
-                  + "789,123,456\n";
+                + "789,123,456\n";
 
-            var data = csv
-                .SplitIntoLines()
-                .ToObservable()
-                .ParseCsv(
-                    row => new
-                    {
-                        Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
-                        Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
-                        Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
-                    },
-                    (h, row) => new[]
-                    {
-                        row[h.Foo],
-                        row[h.Bar],
-                        row[h.Baz],
-                    })
-                .Select(row =>
-                    row.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
-                       .Fold((foo, bar, baz) => new
-                       {
-                           Foo = foo,
-                           Bar = bar,
-                           Baz = baz
-                       }));
+            var data =
+                from e in csv.SplitIntoLines()
+                             .ToObservable()
+                             .ParseCsv(row => new
+                             {
+                                 Foo = row.FindFirstIndex(h => h == "foo") ?? -1,
+                                 Bar = row.FindFirstIndex(h => h == "bar") ?? -1,
+                                 Baz = row.FindFirstIndex(h => h == "baz") ?? -1,
+                             })
+
+                select new[]
+                {
+                    e.Row[e.Head.Foo],
+                    e.Row[e.Head.Bar],
+                    e.Row[e.Head.Baz],
+                }
+                into e
+                select e.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
+                        .Fold((foo, bar, baz) => new
+                        {
+                            Foo = foo,
+                            Bar = bar,
+                            Baz = baz
+                        });
 
             var result = data.SingleAsync().GetAwaiter().GetResult();
 
