@@ -138,6 +138,12 @@ namespace Dsv
             Func<TextRow, THead> headSelector,
             Func<THead, TextRow, TRow> rowSelector)
         {
+            if (lines == null) throw new ArgumentNullException(nameof(lines));
+            if (format == null) throw new ArgumentNullException(nameof(format));
+            if (rowFilter == null) throw new ArgumentNullException(nameof(rowFilter));
+            if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
+            if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
+
             return _(); IEnumerable<TRow> _()
             {
                 using (var row = lines.ParseDsv(format, rowFilter).GetEnumerator())

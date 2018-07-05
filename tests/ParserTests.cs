@@ -29,6 +29,63 @@ namespace Dsv.Tests
 
     public class ParserTests
     {
+        [Fact]
+        public void ParseWithNullLinesThrows()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() =>
+                Parser.ParseDsv<object, object>(
+                    (IEnumerable<string>) null, Format.Csv,
+                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    headSelector: delegate { throw new NotImplementedException(); },
+                    rowSelector : delegate { throw new NotImplementedException(); }));
+            Assert.Equal("lines", e.ParamName);
+        }
+
+        [Fact]
+        public void ParseWithNullFormatThrows()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() =>
+                new string[0].ParseDsv<object, object>(
+                    format: null,
+                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    headSelector: delegate { throw new NotImplementedException(); },
+                    rowSelector : delegate { throw new NotImplementedException(); }));
+            Assert.Equal("format", e.ParamName);
+        }
+
+        [Fact]
+        public void ParseWithNullRowFilterThrows()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() =>
+                new string[0].ParseDsv<object, object>(Format.Csv,
+                    rowFilter   : null,
+                    headSelector: delegate { throw new NotImplementedException(); },
+                    rowSelector : delegate { throw new NotImplementedException(); }));
+            Assert.Equal("rowFilter", e.ParamName);
+        }
+
+        [Fact]
+        public void ParseWithNullHeadSelectorThrows()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() =>
+                new string[0].ParseDsv<object, object>(Format.Csv,
+                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    headSelector: null,
+                    rowSelector : delegate { throw new NotImplementedException(); }));
+            Assert.Equal("headSelector", e.ParamName);
+        }
+
+        [Fact]
+        public void ParseWithNullRowSelectorThrows()
+        {
+            var e = Assert.Throws<ArgumentNullException>(() =>
+                new string[0].ParseDsv<object, object>(Format.Csv,
+                    rowFilter   : delegate { throw new NotImplementedException(); },
+                    headSelector: delegate { throw new NotImplementedException(); },
+                    rowSelector : null));
+            Assert.Equal("rowSelector", e.ParamName);
+        }
+
         static void ParseDsv(char delimiter, char? quote, char escape, string newline, bool skipBlanks,
                              IEnumerable<(int Line, string[] Fields)> rows,
                              Type errorType, string errorMessage,
