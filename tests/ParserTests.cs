@@ -336,9 +336,9 @@ namespace Dsv.Tests
 
                 select new[]
                 {
-                    e.Row[e.Head.Foo],
-                    e.Row[e.Head.Bar],
-                    e.Row[e.Head.Baz],
+                    e.Row[e.Header.Foo],
+                    e.Row[e.Header.Bar],
+                    e.Row[e.Header.Baz],
                 }
                 into e
                 select e.Select(s => int.Parse(s, CultureInfo.InvariantCulture))
@@ -378,9 +378,9 @@ namespace Dsv.Tests
 
                 select new[]
                 {
-                    e.Row[e.Head.Foo],
-                    e.Row[e.Head.Bar],
-                    e.Row[e.Head.Baz],
+                    e.Row[e.Header.Foo],
+                    e.Row[e.Header.Bar],
+                    e.Row[e.Header.Baz],
                 }
                 into e
                 select e.Select(s => int.Parse(s, CultureInfo.InvariantCulture))

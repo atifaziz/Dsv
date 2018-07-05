@@ -21,7 +21,7 @@ namespace Dsv
 
     partial class Parser
     {
-        public static IObservable<(T Head, TextRow Row)>
+        public static IObservable<(T Header, TextRow Row)>
             ParseCsv<T>(this IObservable<string> lines,
                         Func<TextRow, T> headSelector) =>
             lines.ParseCsv(headSelector, ValueTuple.Create);
@@ -31,13 +31,13 @@ namespace Dsv
             Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(Format.Csv, headSelector, rowSelector);
 
-        public static IObservable<(T Head, TextRow Row)>
+        public static IObservable<(T Header, TextRow Row)>
             ParseDsv<T>(this IObservable<string> lines,
                         Format format,
                         Func<TextRow, T> headSelector) =>
             lines.ParseDsv(format, _ => false, headSelector);
 
-        public static IObservable<(T Head, TextRow Row)>
+        public static IObservable<(T Header, TextRow Row)>
             ParseDsv<T>(this IObservable<string> lines,
                         Format format,
                         Func<string, bool> lineFilter,

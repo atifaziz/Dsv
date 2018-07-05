@@ -121,7 +121,7 @@ namespace Dsv
             AwaitNextRow
         }
 
-        public static IEnumerable<(T Head, TextRow Row)>
+        public static IEnumerable<(T Header, TextRow Row)>
             ParseCsv<T>(this IEnumerable<string> lines,
                         Func<TextRow, T> headSelector) =>
             lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
@@ -131,13 +131,13 @@ namespace Dsv
             Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(Format.Csv, headSelector, rowSelector);
 
-        public static IEnumerable<(T Head, TextRow Row)>
+        public static IEnumerable<(T Header, TextRow Row)>
             ParseDsv<T>(this IEnumerable<string> lines,
                         Format format,
                         Func<TextRow, T> headSelector) =>
             lines.ParseDsv(format, _ => true, headSelector);
 
-        public static IEnumerable<(T Head, TextRow Row)>
+        public static IEnumerable<(T Header, TextRow Row)>
             ParseDsv<T>(this IEnumerable<string> lines,
                         Format format,
                         Func<string, bool> lineFilter,
