@@ -21,6 +21,72 @@ namespace Dsv
     using System.Linq;
     using System.Text.RegularExpressions;
 
+    public interface IBinder<out T>
+    {
+        T GetResult(TextRow row);
+    }
+
+    public static partial class Binder
+    {
+        public static IBinder<T> Create<T>(Func<TextRow, T> f) => new Impl<T>(f);
+        public static IBinder<T> Return<T>(T result) => Create(_ => result);
+
+        public static IBinder<TResult>
+            Bind<T, TResult>(
+                this IBinder<T> query,
+                Func<T, IBinder<TResult>> f) =>
+            Create(row => f(query.GetResult(row)).GetResult(row));
+
+
+        sealed class Impl<T> : IBinder<T>
+        {
+            readonly Func<TextRow, T> _impl;
+
+            public Impl(Func<TextRow, T> impl) =>
+                _impl = impl ?? throw new ArgumentNullException(nameof(impl));
+
+            public T GetResult(TextRow row) => _impl(row);
+        }
+    }
+
+    partial class Binder
+    {
+        public static IBinder<TResult>
+            Select<T, TResult>(
+                this IBinder<T> query,
+                Func<T, TResult> selector) =>
+            query.Bind(r => Return(selector(r)));
+
+        public static IBinder<TResult>
+            SelectMany<TFirst, TSecond, TResult>(
+                this IBinder<TFirst> query,
+                Func<TFirst, IBinder<TSecond>> secondSelector,
+                Func<TFirst, TSecond, TResult> resultSelector) =>
+            query.Bind(a => secondSelector(a).Bind(b => Return(resultSelector(a, b))));
+    }
+
+    partial class Binder
+    {
+        static void Test()
+        {
+            var q =
+                from foo in GetFirstIndex("foo")
+                from bar in GetFirstIndex("bar")
+                from baz in GetFirstIndex("baz")
+                from row in Row()
+                select new
+                {
+                    foo, bar, baz, row
+                };
+        }
+
+        public static IBinder<int> GetFirstIndex(string sought) =>
+            Create(row => row.GetFirstIndex(sought));
+
+        public static IBinder<TextRow> Row() =>
+            Create(row => row);
+    }
+
     static partial class TextRowExtensions
     {
         // Methods that get the index of first match; otherwise throw
