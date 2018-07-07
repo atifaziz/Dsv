@@ -142,7 +142,7 @@ namespace Dsv
                         Format format,
                         Func<string, bool> lineFilter,
                         Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, headSelector, ValueTuple.Create);
+            lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
 
         public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
             Format format,
