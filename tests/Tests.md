@@ -500,3 +500,28 @@ Throws:
 ```
 System.FormatException: Missing delimiter (line #1, col #7).
 ```
+
+## Tab Delimiter
+
+### [Bug #1]
+
+Suppose:
+
+- delimiter is `\t`
+
+```
+"foo"	bar
+```
+
+Expected:
+
+Expected:
+
+```json
+[
+    { "ln":  1, "row": ["foo", "bar"] },
+]
+```
+
+
+[Bug #1]: https://github.com/atifaziz/Dsv/issues/1
