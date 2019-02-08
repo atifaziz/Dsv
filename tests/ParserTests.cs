@@ -278,7 +278,7 @@ namespace Dsv.Tests
                         .Select(m => m.Success ? m.Value : null)
                         .Fold((d, q, esc, nl, blanks) => new
                         {
-                            Delimiter  = d?[0] ?? ',',
+                            Delimiter  = d is string ds ? ds == @"\t" ? '\t' : ds[0] : ',',
                             Quote      = q == null
                                        ? '"'
                                        : nils.Contains(q, StringComparer.OrdinalIgnoreCase)
