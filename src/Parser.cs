@@ -293,7 +293,7 @@ namespace Dsv
                             break;
 
                         case State.ExpectingDelimiter:
-                            if (char.IsWhiteSpace(ch) && !char.IsWhiteSpace(delimiter))
+                            if (ch == ' ' || ch == '\t' && delimiter != ch)
                                 break;
                             if (ch != delimiter)
                                 throw new FormatException($"Missing delimiter (line #{ln}, col #{col}).");
