@@ -23,8 +23,6 @@ Features:
 - Line and column information on error
 - Uneven rows
 - Lazy (in consuming a source and producing rows)
-- Parse a DSV format to good old friends like `DataTable`,
-  including header-less support
 - Pull (enumerables) & push (observables) parsing
 
 See the [parser test cases](tests/Tests.md) for how DSV data is handled.
