@@ -26,6 +26,9 @@ namespace Dsv
         public static readonly Format Csv = new Format(',');
         public static readonly Format UnquotedCsv = Csv.Unquoted();
 
+        public static readonly Format Tsv = new Format('\t');
+        public static readonly Format TsvUnquoted = Tsv.Unquoted();
+
         public char   Delimiter { get; }
         public char?  Quote     { get; }
         public char   Escape    { get; }
