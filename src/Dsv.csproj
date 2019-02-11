@@ -10,10 +10,10 @@
     <Owners>Atif Aziz</Owners>
     <Company></Company>
     <PackageProjectUrl>https://github.com/atifaziz/Dsv</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/atifaziz/Dsv</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageTags>dsv csv tsv text</PackageTags>
     <PackageLicenseFile>COPYING.txt</PackageLicenseFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)'=='netstandard1.0'" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
