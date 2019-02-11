@@ -138,7 +138,7 @@ namespace Dsv
             ParseDsv<T>(this IEnumerable<string> lines,
                         Format format,
                         Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, _ => true, headSelector);
+            lines.ParseDsv(format, _ => false, headSelector);
 
         public static IEnumerable<(T Header, TextRow Row)>
             ParseDsv<T>(this IEnumerable<string> lines,
