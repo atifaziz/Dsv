@@ -1,7 +1,5 @@
 version: '{build}'
-image:
-  - Visual Studio 2019
-  - Ubuntu
+image: Visual Studio 2019
 skip_commits:
   files:
     - '*.md'
