@@ -91,10 +91,10 @@ namespace Dsv.Tests
             [Fact]
             public void ParseIsLazy()
             {
-                IEnumerable<string> Lines()
+                static IEnumerable<string> Lines()
                 {
                     throw new InvalidOperationException();
-                    #pragma warning disable 162
+                    #pragma warning disable 162 // Unreachable code detected
                     yield return null;
                     #pragma warning restore 162
                 }
@@ -106,6 +106,92 @@ namespace Dsv.Tests
                     rowSelector : delegate { throw new NotImplementedException(); });
             }
         }
+
+        #if ASYNC_ENUM
+
+        public class AsyncEnumerableSource
+        {
+            [Fact]
+            public void ParseWithNullLinesThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    Parser.ParseDsv<object, object>(
+                        (IAsyncEnumerable<string>) null, Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : delegate { throw new NotImplementedException(); }));
+                Assert.Equal("lines", e.ParamName);
+            }
+
+            [Fact]
+            public void ParseWithNullFormatThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    new string[0].ParseDsv<object, object>(
+                        format: null,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : delegate { throw new NotImplementedException(); }));
+                Assert.Equal("format", e.ParamName);
+            }
+
+            [Fact]
+            public void ParseWithNullRowFilterThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    new string[0].ParseDsv<object, object>(Format.Csv,
+                        lineFilter  : null,
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : delegate { throw new NotImplementedException(); }));
+                Assert.Equal("lineFilter", e.ParamName);
+            }
+
+            [Fact]
+            public void ParseWithNullHeadSelectorThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    new string[0].ParseDsv<object, object>(Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: null,
+                        rowSelector : delegate { throw new NotImplementedException(); }));
+                Assert.Equal("headSelector", e.ParamName);
+            }
+
+            [Fact]
+            public void ParseWithNullRowSelectorThrows()
+            {
+                var e = Assert.Throws<ArgumentNullException>(() =>
+                    new string[0].ParseDsv<object, object>(Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : null));
+                Assert.Equal("rowSelector", e.ParamName);
+            }
+
+            [Fact]
+            public void ParseIsLazy()
+            {
+                #pragma warning disable 1998 // This async method lacks 'await' operators and will run synchronously
+
+                static async IAsyncEnumerable<string> Lines()
+                {
+                    throw new InvalidOperationException();
+                    #pragma warning disable 162 // Unreachable code detected
+                    yield return null;
+                    #pragma warning restore 162
+                }
+
+                #pragma warning restore 1998
+
+                Lines().ParseDsv<object, object>(
+                    format: Format.Csv,
+                    lineFilter  : delegate { throw new NotImplementedException(); },
+                    headSelector: delegate { throw new NotImplementedException(); },
+                    rowSelector : delegate { throw new NotImplementedException(); });
+            }
+        }
+
+        #endif // ASYNC_ENUM
 
         public class ObservableSource
         {
@@ -226,6 +312,22 @@ namespace Dsv.Tests
                 Type errorType, string errorMessage) =>
             ParseDsv(delimiter, quote, escape, newline, skipBlanks, rows, errorType, errorMessage,
                      lines.ParseDsv);
+
+        #if ASYNC_ENUM
+
+        [Theory]
+        [MemberData(nameof(GetData))]
+        public void
+            ParseDsvWithAsyncEnumerable(
+                char delimiter, char? quote, char escape, string newline, bool skipBlanks,
+                IEnumerable<string> lines, IEnumerable<(int Line, string[] Fields)> rows,
+                Type errorType, string errorMessage) =>
+            ParseDsv(delimiter, quote, escape, newline, skipBlanks, rows, errorType, errorMessage,
+                     (f, rf) => lines.ToAsyncEnumerable()
+                                     .ParseDsv(f, rf)
+                                     .ToEnumerable());
+
+        #endif // ASYNC_ENUM
 
         [Theory]
         [MemberData(nameof(GetData))]

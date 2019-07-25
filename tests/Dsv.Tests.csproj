@@ -1,9 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp2.0</TargetFrameworks>
-    <LangVersion>7.1</LangVersion>
+    <TargetFrameworks>netcoreapp3.0;netcoreapp2.1;netcoreapp2.0</TargetFrameworks>
+    <LangVersion>8</LangVersion>
     <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(TargetFramework) == 'netcoreapp3.0'">
+    <DefineConstants>$(DefineConstants);ASYNC_ENUM</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
