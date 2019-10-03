@@ -96,6 +96,10 @@ namespace Dsv
         public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
             Format format, Func<string, bool> lineFilter)
         {
+            if (lines == null) throw new ArgumentNullException(nameof(lines));
+            if (format == null) throw new ArgumentNullException(nameof(format));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
+
             return new DelegatingAsyncEnumerable<TextRow>(_);
 
             async IAsyncEnumerator<TextRow> _(CancellationToken cancellationToken)

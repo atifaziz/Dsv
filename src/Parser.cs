@@ -204,16 +204,23 @@ namespace Dsv
         public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
             Format format, Func<string, bool> lineFilter)
         {
-            var (onLine, onEoi) = Create(format, lineFilter);
+            if (lines == null) throw new ArgumentNullException(nameof(lines));
+            if (format == null) throw new ArgumentNullException(nameof(format));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
 
-            foreach (var line in lines)
+            return _(); IEnumerable<TextRow> _()
             {
-                if (onLine(line) is TextRow row)
-                    yield return row;
-            }
+                var (onLine, onEoi) = Create(format, lineFilter);
 
-            if (onEoi() is Exception e)
-                throw e;
+                foreach (var line in lines)
+                {
+                    if (onLine(line) is TextRow row)
+                        yield return row;
+                }
+
+                if (onEoi() is Exception e)
+                    throw e;
+            }
         }
 
         static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
