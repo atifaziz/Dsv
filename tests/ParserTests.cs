@@ -128,8 +128,9 @@ namespace Dsv.Tests
             [Fact]
             public void ParseWithNullFormatThrows()
             {
+                var source = AsyncEnumerable.Empty<string>();
                 var e = Assert.Throws<ArgumentNullException>(() =>
-                    new string[0].ParseDsv<object, object>(
+                    source.ParseDsv<object, object>(
                         format: null,
                         lineFilter  : delegate { throw new NotImplementedException(); },
                         headSelector: delegate { throw new NotImplementedException(); },
@@ -140,8 +141,9 @@ namespace Dsv.Tests
             [Fact]
             public void ParseWithNullRowFilterThrows()
             {
+                var source = AsyncEnumerable.Empty<string>();
                 var e = Assert.Throws<ArgumentNullException>(() =>
-                    new string[0].ParseDsv<object, object>(Format.Csv,
+                    source.ParseDsv<object, object>(Format.Csv,
                         lineFilter  : null,
                         headSelector: delegate { throw new NotImplementedException(); },
                         rowSelector : delegate { throw new NotImplementedException(); }));
@@ -151,8 +153,9 @@ namespace Dsv.Tests
             [Fact]
             public void ParseWithNullHeadSelectorThrows()
             {
+                var source = AsyncEnumerable.Empty<string>();
                 var e = Assert.Throws<ArgumentNullException>(() =>
-                    new string[0].ParseDsv<object, object>(Format.Csv,
+                    source.ParseDsv<object, object>(Format.Csv,
                         lineFilter  : delegate { throw new NotImplementedException(); },
                         headSelector: null,
                         rowSelector : delegate { throw new NotImplementedException(); }));
@@ -162,8 +165,9 @@ namespace Dsv.Tests
             [Fact]
             public void ParseWithNullRowSelectorThrows()
             {
+                var source = AsyncEnumerable.Empty<string>();
                 var e = Assert.Throws<ArgumentNullException>(() =>
-                    new string[0].ParseDsv<object, object>(Format.Csv,
+                    source.ParseDsv<object, object>(Format.Csv,
                         lineFilter  : delegate { throw new NotImplementedException(); },
                         headSelector: delegate { throw new NotImplementedException(); },
                         rowSelector : null));
@@ -531,6 +535,22 @@ namespace Dsv.Tests
             };
 
             Assert.Equal(expected, result);
+        }
+    }
+
+    static class AsyncEnumerable
+    {
+        public static IAsyncEnumerable<T> Empty<T>() => EmptyAsyncEnumerable<T>.Instance;
+
+        sealed class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>, IAsyncEnumerator<T>
+        {
+            public static readonly IAsyncEnumerable<T> Instance = new EmptyAsyncEnumerable<T>();
+
+            public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) => this;
+
+            public ValueTask DisposeAsync() => new ValueTask(Task.CompletedTask);
+            public ValueTask<bool> MoveNextAsync() => new ValueTask<bool>(Task.FromResult(false));
+            public T Current => throw new InvalidOperationException();
         }
     }
 }
