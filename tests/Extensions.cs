@@ -46,5 +46,43 @@ namespace Dsv.Tests
             if (type == null) throw new ArgumentNullException(nameof(type));
             return type.Assembly.GetManifestResourceStream(type, resourceName);
         }
+
+        #if !NO_ASYNC_STREAM
+
+        public static IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IEnumerable<T> source)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            #pragma warning disable 1998 // This async method lacks 'await' operators and will run synchronously
+
+            return _(); async IAsyncEnumerable<T> _()
+            {
+                foreach (var item in source)
+                    yield return item;
+            }
+
+            #pragma warning restore 1998
+        }
+
+        public static IEnumerable<T> ToEnumerable<T>(this IAsyncEnumerable<T> source)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            return _(); IEnumerable<T> _()
+            {
+                var item = source.GetAsyncEnumerator(System.Threading.CancellationToken.None);
+                try
+                {
+                    while (item.MoveNextAsync().GetAwaiter().GetResult())
+                        yield return item.Current;
+                }
+                finally
+                {
+                    item.DisposeAsync().GetAwaiter().GetResult();
+                }
+            }
+        }
+
+        #endif // !NO_ASYNC_STREAM
     }
 }

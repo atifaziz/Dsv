@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard1.0</TargetFrameworks>
-    <LangVersion>7.1</LangVersion>
     <VersionPrefix>1.4.0</VersionPrefix>
+    <TargetFrameworks>netstandard2.1;netstandard2.0;netstandard1.0</TargetFrameworks>
+    <LangVersion>8</LangVersion>
     <Copyright>Copyright © 2017 Atif Aziz</Copyright>
     <Description>DSV (Delimiter-Separated Values) Parsing for .NET</Description>
     <Authors>Atif Aziz</Authors>
@@ -23,6 +23,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\bin\Release\</OutputPath>
   </PropertyGroup>
+
+  <PropertyGroup Condition="$(TargetFramework) == 'netstandard1.0'">
+    <DefineConstants>$(DefineConstants);NO_ASYNC_STREAM</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Interactive.Async">
+      <Version>4.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)'=='netstandard1.0'" />
