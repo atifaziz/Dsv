@@ -70,16 +70,15 @@ namespace Dsv
 
             async IAsyncEnumerator<TRow> _(CancellationToken cancellationToken)
             {
-                // TODO review await configuration
+                var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
+                await using var _ = row.ConfigureAwait(false);
 
-                await using var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
-
-                if (!(await row.MoveNextAsync()))
+                if (!(await row.MoveNextAsync().ConfigureAwait(false)))
                     yield break;
 
                 var head = headSelector(row.Current);
 
-                while (await row.MoveNextAsync())
+                while (await row.MoveNextAsync().ConfigureAwait(false))
                     yield return rowSelector(head, row.Current);
             }
         }
@@ -103,9 +102,7 @@ namespace Dsv
             {
                 var (onLine, onEoi) = Create(format, lineFilter);
 
-                // TODO review await configuration
-
-                await foreach (var line in lines.WithCancellation(cancellationToken))
+                await foreach (var line in lines.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
                     if (onLine(line) is TextRow row)
                         yield return row;
