@@ -180,68 +180,6 @@ namespace Dsv
             }
         }
 
-        #if !NO_ASYNC_STREAM
-
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseCsv<T>(this IAsyncEnumerable<string> lines,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
-
-        public static IAsyncEnumerable<TRow> ParseCsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
-            lines.ParseDsv(Format.Csv, headSelector, rowSelector);
-
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                        Format format,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, _ => false, headSelector);
-
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                        Format format,
-                        Func<string, bool> lineFilter,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
-
-        public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Format format,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
-            lines.ParseDsv(format, _ => false, headSelector, rowSelector);
-
-        public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Format format,
-            Func<string, bool> lineFilter,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector)
-        {
-            if (lines == null) throw new ArgumentNullException(nameof(lines));
-            if (format == null) throw new ArgumentNullException(nameof(format));
-            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
-            if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
-            if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
-
-            return _(); async IAsyncEnumerable<TRow> _()
-            {
-                // TODO review CancellationToken.None
-                // TODO review await configuration
-
-                await using var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(System.Threading.CancellationToken.None);
-
-                if (!(await row.MoveNextAsync()))
-                    yield break;
-
-                var head = headSelector(row.Current);
-
-                while (await row.MoveNextAsync())
-                    yield return rowSelector(head, row.Current);
-            }
-        }
-
-        #endif // !NO_ASYNC_STREAM
-
         /// <summary>
         /// Parses CSV data from a sequence of lines, allowing quoted
         /// fields and using two quotes to escape quote within a quoted
@@ -253,16 +191,6 @@ namespace Dsv
 
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> lineFilter) =>
             lines.ParseDsv(Format.Csv, lineFilter);
-
-        #if !NO_ASYNC_STREAM
-
-        public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines) =>
-            lines.ParseDsv(Format.Csv);
-
-        public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines, Func<string, bool> lineFilter) =>
-            lines.ParseDsv(Format.Csv, lineFilter);
-
-        #endif // NO_ASYNC_STREAM
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
@@ -287,32 +215,6 @@ namespace Dsv
             if (onEoi() is Exception e)
                 throw e;
         }
-
-        #if !NO_ASYNC_STREAM
-
-        public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-            Format format) =>
-            lines.ParseDsv(format, (string _) => false);
-
-        public static async IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-            Format format, Func<string, bool> lineFilter)
-        {
-            var (onLine, onEoi) = Create(format, lineFilter);
-
-            // TODO review CancellationToken.None
-            // TODO review await configuration
-
-            await foreach (var line in lines)
-            {
-                if (onLine(line) is TextRow row)
-                    yield return row;
-            }
-
-            if (onEoi() is Exception e)
-                throw e;
-        }
-
-        #endif // !NO_ASYNC_STREAM
 
         static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
             Create(Format format, Func<string, bool> lineFilter)
