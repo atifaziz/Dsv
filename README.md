@@ -23,7 +23,7 @@ Features:
 - Line and column information on error
 - Uneven rows
 - Lazy (in consuming a source and producing rows)
-- Pull (enumerables) & push (observables) parsing
+- Pull (sync or async enumerables) & push (observables) parsing
 
 See the [parser test cases](tests/Tests.md) for how DSV data is handled.
 
