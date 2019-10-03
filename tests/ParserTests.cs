@@ -107,7 +107,7 @@ namespace Dsv.Tests
             }
         }
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         public class AsyncEnumerableSource
         {
@@ -191,7 +191,7 @@ namespace Dsv.Tests
             }
         }
 
-        #endif // ASYNC_ENUM
+        #endif // !NO_ASYNC_STREAM
 
         public class ObservableSource
         {
@@ -313,7 +313,7 @@ namespace Dsv.Tests
             ParseDsv(delimiter, quote, escape, newline, skipBlanks, rows, errorType, errorMessage,
                      lines.ParseDsv);
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         [Theory]
         [MemberData(nameof(GetData))]
@@ -327,7 +327,7 @@ namespace Dsv.Tests
                                      .ParseDsv(f, rf)
                                      .ToEnumerable());
 
-        #endif // ASYNC_ENUM
+        #endif // !NO_ASYNC_STREAM
 
         [Theory]
         [MemberData(nameof(GetData))]

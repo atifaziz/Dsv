@@ -180,7 +180,7 @@ namespace Dsv
             }
         }
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         public static IAsyncEnumerable<(T Header, TextRow Row)>
             ParseCsv<T>(this IAsyncEnumerable<string> lines,
@@ -240,7 +240,7 @@ namespace Dsv
             }
         }
 
-        #endif // ASYNC_ENUM
+        #endif // !NO_ASYNC_STREAM
 
         /// <summary>
         /// Parses CSV data from a sequence of lines, allowing quoted
@@ -254,7 +254,7 @@ namespace Dsv
         public static IEnumerable<TextRow> ParseCsv(this IEnumerable<string> lines, Func<string, bool> lineFilter) =>
             lines.ParseDsv(Format.Csv, lineFilter);
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines) =>
             lines.ParseDsv(Format.Csv);
@@ -262,7 +262,7 @@ namespace Dsv
         public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines, Func<string, bool> lineFilter) =>
             lines.ParseDsv(Format.Csv, lineFilter);
 
-        #endif // ASYNC_ENUM
+        #endif // NO_ASYNC_STREAM
 
         /// <summary>
         /// Parses delimiter-separated values, like CSV, given a sequence
@@ -288,7 +288,7 @@ namespace Dsv
                 throw e;
         }
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
             Format format) =>
@@ -312,7 +312,7 @@ namespace Dsv
                 throw e;
         }
 
-        #endif // ASYNC_ENUM
+        #endif // !NO_ASYNC_STREAM
 
         static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
             Create(Format format, Func<string, bool> lineFilter)

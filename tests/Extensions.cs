@@ -47,7 +47,7 @@ namespace Dsv.Tests
             return type.Assembly.GetManifestResourceStream(type, resourceName);
         }
 
-        #if ASYNC_ENUM
+        #if !NO_ASYNC_STREAM
 
         public static IAsyncEnumerable<T> ToAsyncEnumerable<T>(this IEnumerable<T> source)
         {
@@ -83,6 +83,6 @@ namespace Dsv.Tests
             }
         }
 
-        #endif // ASYNC_ENUM
+        #endif // !NO_ASYNC_STREAM
     }
 }
