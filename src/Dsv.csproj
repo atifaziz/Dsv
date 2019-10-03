@@ -13,6 +13,9 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageTags>dsv csv tsv text</PackageTags>
     <PackageLicenseFile>COPYING.txt</PackageLicenseFile>
+    <PackageOutputPath>..\dist</PackageOutputPath>
+    <IncludeSymbols>true</IncludeSymbols>
+    <IncludeSource>true</IncludeSource>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
