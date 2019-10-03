@@ -20,6 +20,8 @@ namespace Dsv
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     static partial class Parser
     {
@@ -64,12 +66,13 @@ namespace Dsv
             if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
             if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
 
-            return _(); async IAsyncEnumerable<TRow> _()
+            return new DelegatingAsyncEnumerable<TRow>(_);
+
+            async IAsyncEnumerator<TRow> _(CancellationToken cancellationToken)
             {
-                // TODO review CancellationToken.None
                 // TODO review await configuration
 
-                await using var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(System.Threading.CancellationToken.None);
+                await using var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
 
                 if (!(await row.MoveNextAsync()))
                     yield break;
@@ -91,22 +94,26 @@ namespace Dsv
             Format format) =>
             lines.ParseDsv(format, (string _) => false);
 
-        public static async IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
+        public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
             Format format, Func<string, bool> lineFilter)
         {
-            var (onLine, onEoi) = Create(format, lineFilter);
+            return new DelegatingAsyncEnumerable<TextRow>(_);
 
-            // TODO review CancellationToken.None
-            // TODO review await configuration
-
-            await foreach (var line in lines)
+            async IAsyncEnumerator<TextRow> _(CancellationToken cancellationToken)
             {
-                if (onLine(line) is TextRow row)
-                    yield return row;
-            }
+                var (onLine, onEoi) = Create(format, lineFilter);
 
-            if (onEoi() is Exception e)
-                throw e;
+                // TODO review await configuration
+
+                await foreach (var line in lines.WithCancellation(cancellationToken))
+                {
+                    if (onLine(line) is TextRow row)
+                        yield return row;
+                }
+
+                if (onEoi() is Exception e)
+                    throw e;
+            }
         }
     }
 }

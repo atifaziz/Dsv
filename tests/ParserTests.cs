@@ -23,6 +23,8 @@ namespace Dsv.Tests
     using System.Reactive.Linq;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Mannex.Text.RegularExpressions;
     using MoreLinq;
     using Xunit;
@@ -188,6 +190,32 @@ namespace Dsv.Tests
                     lineFilter  : delegate { throw new NotImplementedException(); },
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : delegate { throw new NotImplementedException(); });
+            }
+
+            [Fact]
+            public async Task PassesCancellationTokenToSource()
+            {
+                const string test = nameof(test);
+
+                using var cancellationTokenSource = new CancellationTokenSource();
+                var cancellationToken = cancellationTokenSource.Token;
+                await using var e = TestSource(test).ParseCsv().GetAsyncEnumerator(cancellationToken);
+
+                Assert.True(await e.MoveNextAsync());
+                Assert.Equal(test, e.Current[0]);
+                CancellationToken capturedCancellationToken;
+                Assert.Equal(cancellationToken, capturedCancellationToken);
+
+                IAsyncEnumerable<string> TestSource(string test)
+                {
+                    return new DelegatingAsyncEnumerable<string>(_);
+                    async IAsyncEnumerator<string> _(CancellationToken cancellationToken)
+                    {
+                        capturedCancellationToken = cancellationToken;
+                        await Task.Delay(TimeSpan.Zero, cancellationToken);
+                        yield return test;
+                    }
+                }
             }
         }
 
