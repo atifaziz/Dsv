@@ -19,7 +19,6 @@ namespace Dsv
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Text;
 
     sealed partial class Format
     {
@@ -113,17 +112,6 @@ namespace Dsv
 
     static partial class Parser
     {
-        enum State
-        {
-            AtFieldStart,
-            InQuotedField,
-            InField,
-            Escaping,
-            ExpectingDelimiter,
-            QuoteQuote, // when escape char is also quote char
-            AwaitNextRow
-        }
-
         public static IEnumerable<(T Header, TextRow Row)>
             ParseCsv<T>(this IEnumerable<string> lines,
                         Func<TextRow, T> headSelector) =>
@@ -224,7 +212,96 @@ namespace Dsv
         }
 
         static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
-            Create(Format format, Func<string, bool> lineFilter)
+            Create(Format format, Func<string, bool> lineFilter) =>
+            Internal.Parser.InternalCreate(format, lineFilter);
+    }
+}
+
+namespace Dsv.Internal
+{
+    using System;
+    using System.Text;
+
+    /// <summary>
+    /// The core implementation as a state machine.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// THIS TYPE IS RESERVED FOR INTERNAL AND EXPERIMENTAL USE ONLY. IT MAY
+    /// BE MODIFIED IN OR REMOVED FROM A FUTURE MAJOR OR MINOR RELEASE AND
+    /// POSSIBLY WITHOUT NOTICE. USE IT AT YOUR OWN RISK. IT IS PUBLISHED FOR
+    /// FIELD EXPERIMENTATION TO SOLICIT FEEDBACK ON ITS UTILITY AND
+    /// DESIGN/IMPLEMENTATION DEFECTS.</para>
+    /// <para>
+    /// Do not continue use an instance of this class after calling
+    /// <see cref="Terminate"/>.</para>
+    /// </remarks>
+
+    partial class Parser
+    {
+        Func<string, TextRow?> _onLine;
+        Func<Exception> _onEoi;
+
+        public static Parser Create(Format format) =>
+            Create(format, _ => false);
+
+        public static Parser Create(Format format, Func<string, bool> lineFilter)
+        {
+            if (format == null) throw new ArgumentNullException(nameof(format));
+            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
+
+            var (onLine, onEoi) = InternalCreate(format, lineFilter);
+            return new Parser(onLine, onEoi);
+        }
+
+        Parser(Func<string, TextRow?> onLine, Func<Exception> onEoi)
+        {
+            _onLine = onLine;
+            _onEoi = onEoi;
+        }
+
+        /// <summary>
+        /// Receives a line and optionally produces a row when one has been
+        /// fully parsed.
+        /// </summary>
+
+        public TextRow? ReceiveLine(string line) => _onLine switch
+        {
+            null     => throw new InvalidOperationException(),
+            var some => some(line)
+        };
+
+        /// <summary>
+        /// Signals end of input and return an error if a row was partially
+        /// parsed due to incomplete input.
+        /// </summary>
+
+        public Exception Terminate()
+        {
+            switch (_onEoi)
+            {
+                case null:
+                    throw new InvalidOperationException();
+                case var some:
+                    _onEoi = null;
+                    _onLine = null;
+                    return some();
+            }
+        }
+
+        enum State
+        {
+            AtFieldStart,
+            InQuotedField,
+            InField,
+            Escaping,
+            ExpectingDelimiter,
+            QuoteQuote, // when escape char is also quote char
+            AwaitNextRow
+        }
+
+        internal static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
+            InternalCreate(Format format, Func<string, bool> lineFilter)
         {
             var delimiter = format.Delimiter;
             var quote     = format.Quote;
