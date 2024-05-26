@@ -368,18 +368,16 @@ namespace Dsv.Tests
 
             if (errorType == null)
             {
-                using (var row = rows.GetEnumerator())
+                using var row = rows.GetEnumerator();
+                foreach (var fields in rowParser(format, lineFilter))
                 {
-                    foreach (var fields in rowParser(format, lineFilter))
-                    {
-                        Assert.True(row.MoveNext(), "Source has too many rows.");
-                        var (ln, fs) = row.Current;
-                        Assert.Equal(ln, fields.LineNumber);
-                        Assert.Equal(fs, fields.ToArray());
-                    }
-
-                    Assert.False(row.MoveNext(), "Source has too few rows.");
+                    Assert.True(row.MoveNext(), "Source has too many rows.");
+                    var (ln, fs) = row.Current;
+                    Assert.Equal(ln, fields.LineNumber);
+                    Assert.Equal(fs, fields.ToArray());
                 }
+
+                Assert.False(row.MoveNext(), "Source has too few rows.");
             }
             else
             {

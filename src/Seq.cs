@@ -64,16 +64,15 @@ namespace Dsv
 
             return _(); IEnumerable<TRow> _()
             {
-                using (var row = lines.ParseDsv(format, lineFilter).GetEnumerator())
-                {
-                    if (!row.MoveNext())
-                        yield break;
+                using var row = lines.ParseDsv(format, lineFilter).GetEnumerator();
 
-                    var head = headSelector(row.Current);
+                if (!row.MoveNext())
+                    yield break;
 
-                    while (row.MoveNext())
-                        yield return rowSelector(head, row.Current);
-                }
+                var head = headSelector(row.Current);
+
+                while (row.MoveNext())
+                    yield return rowSelector(head, row.Current);
             }
         }
 

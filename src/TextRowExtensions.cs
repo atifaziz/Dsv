@@ -89,12 +89,11 @@ namespace Dsv
             string sought, StringComparison comparison,
             Func<string, int, T> someSelector, Func<T> noneSelector)
         {
-            using (var e = row.Find((s, i) => string.Equals(sought, s, comparison)
-                                            ? (true, someSelector(s, i))
-                                            : default).GetEnumerator())
-            {
-                return e.MoveNext() ? e.Current : noneSelector();
-            }
+            using var e = row.Find((s, i) => string.Equals(sought, s, comparison)
+                                           ? (true, someSelector(s, i))
+                                           : default)
+                             .GetEnumerator();
+            return e.MoveNext() ? e.Current : noneSelector();
         }
 
         // Methods to get the first matching field; otherwise throw
@@ -139,8 +138,8 @@ namespace Dsv
             string pattern, RegexOptions options,
             Func<string, int, Match, T> someSelector, Func<T> noneSelector)
         {
-            using (var e = row.Match(pattern, options, someSelector).GetEnumerator())
-                return e.MoveNext() ? e.Current : noneSelector();
+            using var e = row.Match(pattern, options, someSelector).GetEnumerator();
+            return e.MoveNext() ? e.Current : noneSelector();
         }
 
         // Methods that get the first field matching a pattern; otherwise throw

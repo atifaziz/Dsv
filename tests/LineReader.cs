@@ -34,7 +34,7 @@ namespace Dsv.Tests
             if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
             return _(); IEnumerable<string> _()
             {
-                using (var line = streamFactory().OpenTextReader(encoding).ReadLines())
+                using var line = streamFactory().OpenTextReader(encoding).ReadLines();
                 while (line.MoveNext())
                     yield return line.Current;
             }
@@ -61,11 +61,9 @@ namespace Dsv.Tests
             if (readerFactory == null) throw new ArgumentNullException(nameof(readerFactory));
             return _(); IEnumerable<string> _()
             {
-                using (var line = readerFactory().ReadLines())
-                {
-                    while (line.MoveNext())
-                        yield return line.Current;
-                }
+                using var line = readerFactory().ReadLines();
+                while (line.MoveNext())
+                    yield return line.Current;
             }
         }
 
