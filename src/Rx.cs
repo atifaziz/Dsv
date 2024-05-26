@@ -114,13 +114,13 @@ namespace Dsv
                 return lines.Subscribe(
                     onNext: line =>
                     {
-                        if (onLine(line) is TextRow row)
+                        if (onLine(line) is { } row)
                             o.OnNext(row);
                     },
                     onError: o.OnError,
                     onCompleted: () =>
                     {
-                        if (onEoi() is Exception e)
+                        if (onEoi() is { } e)
                             o.OnError(e);
                         else
                             o.OnCompleted();

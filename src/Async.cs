@@ -108,11 +108,11 @@ namespace Dsv
 
                 await foreach (var line in lines.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
-                    if (onLine(line) is TextRow row)
+                    if (onLine(line) is { } row)
                         yield return row;
                 }
 
-                if (onEoi() is Exception e)
+                if (onEoi() is { } e)
                     throw e;
             }
         }

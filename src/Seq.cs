@@ -111,11 +111,11 @@ namespace Dsv
 
                 foreach (var line in lines)
                 {
-                    if (onLine(line) is TextRow row)
+                    if (onLine(line) is { } row)
                         yield return row;
                 }
 
-                if (onEoi() is Exception e)
+                if (onEoi() is { } e)
                     throw e;
             }
         }

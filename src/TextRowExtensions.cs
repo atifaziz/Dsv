@@ -33,7 +33,7 @@ namespace Dsv
             row.GetFirstIndex(s => string.Equals(s, sought, comparison));
 
         public static int GetFirstIndex(this TextRow row, Func<string, bool> predicate) =>
-            row.FindFirstIndex(predicate) is int i ? i : throw new InvalidOperationException("Sequence contains no elements.");
+            row.FindFirstIndex(predicate) ?? throw new InvalidOperationException("Sequence contains no elements.");
 
         // Methods that get the index of first match; otherwise return null
 
