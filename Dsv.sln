@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dsv", "src\Dsv.csproj", "{2B16043E-4442-4EFE-9EBF-9A3BD93D35BD}"
 EndProject
@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		build.cmd = build.cmd
 		build.sh = build.sh
 		COPYING.txt = COPYING.txt
+		Directory.Build.props = Directory.Build.props
 		global.json = global.json
 		pack.cmd = pack.cmd
 		pack.sh = pack.sh
