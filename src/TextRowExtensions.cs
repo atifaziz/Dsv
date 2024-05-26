@@ -58,8 +58,7 @@ namespace Dsv
         // Method to find index of fields matching a condition
 
         public static IEnumerable<int> FindIndex(this TextRow row, Func<string, bool> predicate) =>
-            row.Find((s, i) => predicate(s) is bool matched && matched
-                ? (true, i) : (false, default));
+            row.Find((s, i) => predicate(s) ? (true, i) : (false, default));
 
         // Methods to find the first field matching a condition; otherwise
         // return an alternative when none match.
@@ -90,8 +89,7 @@ namespace Dsv
             string sought, StringComparison comparison,
             Func<string, int, T> someSelector, Func<T> noneSelector)
         {
-            using (var e = row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched
-                                              && matched
+            using (var e = row.Find((s, i) => string.Equals(sought, s, comparison)
                                             ? (true, someSelector(s, i))
                                             : default).GetEnumerator())
             {
@@ -107,7 +105,7 @@ namespace Dsv
 
         public static T GetFirstField<T>(this TextRow row,
             string sought, StringComparison comparison, Func<string, int, T> resultSelector) =>
-            row.Find((s, i) => string.Equals(sought, s, comparison) is bool matched && matched
+            row.Find((s, i) => string.Equals(sought, s, comparison)
                              ? (true, resultSelector(s, i))
                              : default)
                .First();
