@@ -1,6 +1,6 @@
 version: '{build}'
 image:
-  - Visual Studio 2019
+  - Visual Studio 2022
   - Ubuntu
 skip_commits:
   files:
@@ -13,20 +13,13 @@ environment:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 install:
-- cmd: curl -sSLO https://download.microsoft.com/download/3/a/3/3a3bda26-560d-4d8e-922e-6f6bc4553a84/dotnet-runtime-2.0.9-win-x64.exe
-- cmd: dotnet-runtime-2.0.9-win-x64.exe /quiet /norestart
-- cmd: curl -sSLO https://download.visualstudio.microsoft.com/download/pr/d046f80d-8ad4-4bb9-8db6-8510105de979/07319c666f9951e15c607aed260ab12d/dotnet-runtime-2.1.13-win-x64.exe
-- cmd: dotnet-runtime-2.1.13-win-x64.exe /quiet /norestart
-- cmd: curl -sSLO https://download.visualstudio.microsoft.com/download/pr/a803822b-178b-4d21-bb7c-aaa1d209c341/e77c5ca1d0ea9963346655e2ec2733f2/dotnet-runtime-2.2.7-win-x64.exe
-- cmd: dotnet-runtime-2.2.7-win-x64.exe /quiet /norestart
-- cmd: curl -sSLO https://download.visualstudio.microsoft.com/download/pr/53f250a1-318f-4350-8bda-3c6e49f40e76/e8cbbd98b08edd6222125268166cfc43/dotnet-sdk-3.0.100-win-x64.exe
-- cmd: dotnet-sdk-3.0.100-win-x64.exe /quiet /norestart
+- ps: if ($isWindows) { Invoke-WebRequest -OutFile dotnet-install.ps1 https://dot.net/v1/dotnet-install.ps1 }
+- ps: if ($isWindows) { ./dotnet-install.ps1 -JSonFile global.json }
+- ps: if ($isWindows) { ./dotnet-install.ps1 -Runtime dotnet -Version 6.0.30 -SkipNonVersionedFiles }
 - sh: curl -sSLO https://dot.net/v1/dotnet-install.sh
 - sh: chmod +x dotnet-install.sh
-- sh: ./dotnet-install.sh --version 2.0.9   --runtime dotnet
-- sh: ./dotnet-install.sh --version 2.1.13  --runtime dotnet
-- sh: ./dotnet-install.sh --version 2.2.7   --runtime dotnet
-- sh: ./dotnet-install.sh --version 3.0.100
+- sh: ./dotnet-install.sh --jsonfile global.json
+- sh: ./dotnet-install.sh --runtime dotnet --version 6.0.30 --skip-non-versioned-files
 - sh: export PATH="$HOME/.dotnet:$PATH"
 before_build:
 - dotnet --info

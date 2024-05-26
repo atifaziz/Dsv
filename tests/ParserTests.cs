@@ -256,11 +256,11 @@ namespace Dsv.Tests
 
                 using var cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = cancellationTokenSource.Token;
+                CancellationToken capturedCancellationToken = default;
                 await using var e = TestSource(test).ParseCsv().GetAsyncEnumerator(cancellationToken);
 
                 Assert.True(await e.MoveNextAsync());
                 Assert.Equal(test, e.Current[0]);
-                CancellationToken capturedCancellationToken;
                 Assert.Equal(cancellationToken, capturedCancellationToken);
 
                 IAsyncEnumerable<string> TestSource(string test)

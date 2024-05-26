@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.4.1</VersionPrefix>
     <TargetFrameworks>netstandard2.1;netstandard2.0;netstandard1.0</TargetFrameworks>
     <LangVersion>8</LangVersion>
     <Copyright>Copyright © 2017 Atif Aziz</Copyright>
@@ -33,13 +33,13 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Interactive.Async">
-      <Version>4.0.0</Version>
+      <Version>6.0.1</Version>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" Condition="'$(TargetFramework)'=='netstandard1.0'" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-*" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
