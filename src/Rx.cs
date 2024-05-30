@@ -145,7 +145,9 @@ namespace Dsv.Reactive
             {
                 return source.Subscribe(Observer.Create(onNext, onError, onCompleted));
             }
+#pragma warning disable CA1031 // Do not catch general exception types (by-design)
             catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 onError(e);
                 return Disposable.Nop;
@@ -169,33 +171,25 @@ namespace Dsv.Reactive
             new Observer<T>(onNext, onError, onCompleted);
     }
 
-    sealed class Observable<T> : IObservable<T>
+    sealed class Observable<T>(Func<IObserver<T>, IDisposable> subscriptionHandler) :
+        IObservable<T>
     {
-        readonly Func<IObserver<T>, IDisposable> _subscriptionHandler;
-
-        public Observable(Func<IObserver<T>, IDisposable> subscriptionHandler) =>
-            _subscriptionHandler = subscriptionHandler
-                                    ?? throw new ArgumentNullException(nameof(subscriptionHandler));
+        readonly Func<IObserver<T>, IDisposable> _subscriptionHandler = subscriptionHandler
+                                                                        ?? throw new ArgumentNullException(nameof(subscriptionHandler));
 
         public IDisposable Subscribe(IObserver<T> observer) =>
             _subscriptionHandler(observer);
     }
 
-    sealed class Observer<T> : IObserver<T>
+    sealed class Observer<T>(Action<T> onNext,
+                             Action<Exception>? onError = null,
+                             Action? onCompleted = null) :
+        IObserver<T>
     {
-        readonly Action<T> _onNext;
-        readonly Action<Exception>? _onError;
-        readonly Action? _onCompleted;
+        readonly Action<T> _onNext = onNext ?? throw new ArgumentNullException(nameof(onNext));
 
-        public Observer(Action<T> onNext, Action<Exception>? onError = null, Action? onCompleted = null)
-        {
-            _onNext = onNext ?? throw new ArgumentNullException(nameof(onNext));
-            _onError = onError;
-            _onCompleted = onCompleted;
-        }
-
-        public void OnCompleted() => _onCompleted?.Invoke();
-        public void OnError(Exception error) => _onError?.Invoke(error);
+        public void OnCompleted() => onCompleted?.Invoke();
+        public void OnError(Exception error) => onError?.Invoke(error);
         public void OnNext(T value) => _onNext(value);
     }
 }

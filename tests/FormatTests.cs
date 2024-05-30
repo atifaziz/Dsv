@@ -22,7 +22,7 @@ namespace Dsv.Tests
     {
         public sealed class CustomDelimiterFormat
         {
-            readonly Format _delimiterInitializedFormat = new Format('\0');
+            readonly Format _delimiterInitializedFormat = new('\0');
 
             [Fact]
             public void ReturnsCustomDelimiter() =>

@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
-    <LangVersion>8</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -27,6 +26,7 @@
     <PackageReference Include="morelinq" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Interactive.Async" Version="6.0.1" Condition="'$(TargetFramework)'!='netcoreapp3.0'" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="xunit" Version="2.8.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">

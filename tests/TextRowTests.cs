@@ -80,12 +80,20 @@ namespace Dsv.Tests
             [InlineData(6, "FOO")]
             [InlineData(7, "BAR")]
             [InlineData(8, "BAZ")]
-            public void ReturnsIndexOfSoughtString(int index, string sought) =>
-                Assert.Equal(index, Row.GetFirstIndex(sought));
+            public void ReturnsIndexOfSoughtString(int index, string sought)
+            {
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+                var result = Row.GetFirstIndex(sought);
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+                Assert.Equal(index, result);
+            }
 
             [Fact]
             public void ThrowsOnNoMatch() =>
-                Assert.Throws<InvalidOperationException>(() => Row.GetFirstIndex("?"));
+                Assert.Throws<InvalidOperationException>(() =>
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+                    Row.GetFirstIndex("?"));
+#pragma warning restore CA1307 // Specify StringComparison for clarity
 
             [Theory]
             [InlineData(0, "foo", StringComparison.Ordinal)]
@@ -132,8 +140,13 @@ namespace Dsv.Tests
             [InlineData( 8, "BAZ")]
             [InlineData(-1, "-")]
             [InlineData(-1, "?")]
-            public void ReturnsIndexOfSoughtString(int index, string sought) =>
-                Assert.Equal(index, Row.FindFirstIndex(sought) ?? -1);
+            public void ReturnsIndexOfSoughtString(int index, string sought)
+            {
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+                var result = Row.FindFirstIndex(sought) ?? -1;
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+                Assert.Equal(index, result);
+            }
 
             [Theory]
             [InlineData( 0, "foo", StringComparison.Ordinal)]

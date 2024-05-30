@@ -22,10 +22,10 @@ namespace Dsv
 
     sealed partial class Format
     {
-        public static readonly Format Csv = new Format(',');
+        public static readonly Format Csv = new(',');
         public static readonly Format UnquotedCsv = Csv.Unquoted();
 
-        public static readonly Format Tsv = new Format('\t');
+        public static readonly Format Tsv = new('\t');
         public static readonly Format TsvUnquoted = Tsv.Unquoted();
 
         public char   Delimiter { get; }
@@ -59,7 +59,9 @@ namespace Dsv
             value == NewLine ? this : new Format(Delimiter, Quote, Escape, value);
     }
 
-    partial struct TextRow : IList<string>, IReadOnlyList<string>
+#pragma warning disable CA1815 // Override equals and operator equals on value types (compatibility)
+    readonly partial struct TextRow : IList<string>, IReadOnlyList<string>
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         readonly string[]? _fields;
 
@@ -73,10 +75,10 @@ namespace Dsv
 
         string[] Fields => _fields ??
         #if NETSTANDARD1_0
-                           (_zeroFields ?? (_zeroFields = new string[0]));
+                           (_zeroFields ??= []);
                            static string[]? _zeroFields;
         #else
-                           Array.Empty<string>();
+                           [];
         #endif
 
         public string this[int index] => Fields[index];
@@ -100,8 +102,8 @@ namespace Dsv
         public int Count => Fields?.Length ?? 0;
         bool ICollection<string>.IsReadOnly => true;
 
-        static Exception ReadOnlyError() =>
-            new InvalidOperationException("Collection is read-only.");
+        static InvalidOperationException ReadOnlyError() =>
+            new("Collection is read-only.");
 
         void ICollection<string>.Add(string item)         => throw ReadOnlyError();
         void ICollection<string>.Clear()                  => throw ReadOnlyError();
@@ -323,7 +325,9 @@ namespace Dsv.Internal
                             break;
 
                         default:
+#pragma warning disable CA2201 // Do not raise reserved exception types
                             throw new Exception("XSV parsing implementation error.");
+#pragma warning restore CA2201 // Do not raise reserved exception types
                     }
                 }
 

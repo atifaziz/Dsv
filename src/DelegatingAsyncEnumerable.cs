@@ -22,12 +22,10 @@ namespace Dsv
     using System.Collections.Generic;
     using System.Threading;
 
-    sealed class DelegatingAsyncEnumerable<T> : IAsyncEnumerable<T>
+    sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) :
+        IAsyncEnumerable<T>
     {
-        readonly Func<CancellationToken, IAsyncEnumerator<T>> _delegatee;
-
-        public DelegatingAsyncEnumerable(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) =>
-            _delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
+        readonly Func<CancellationToken, IAsyncEnumerator<T>> _delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
             _delegatee(cancellationToken);

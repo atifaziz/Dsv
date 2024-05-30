@@ -48,8 +48,12 @@ namespace Dsv
         {
             for (var i = 0; i < row.Count; i++)
             {
+#pragma warning disable CA1062 // Validate arguments of public methods (compatibility)
                 if (predicate(row[i]))
+#pragma warning restore CA1062 // Validate arguments of public methods
+                {
                     return i;
+                }
             }
 
             return null;
@@ -95,7 +99,11 @@ namespace Dsv
                                            ? (true, someSelector(s, i))
                                            : default)
                              .GetEnumerator();
-            return e.MoveNext() ? e.Current : noneSelector();
+            return e.MoveNext()
+                 ? e.Current
+#pragma warning disable CA1062 // Validate arguments of public methods (compatibility)
+                 : noneSelector();
+#pragma warning restore CA1062 // Validate arguments of public methods
         }
 
         // Methods to get the first matching field; otherwise throw
@@ -143,7 +151,11 @@ namespace Dsv
             Func<string, int, Match, T> someSelector, Func<T> noneSelector)
         {
             using var e = row.Match(pattern, options, someSelector).GetEnumerator();
-            return e.MoveNext() ? e.Current : noneSelector();
+            return e.MoveNext()
+                 ? e.Current
+#pragma warning disable CA1062 // Validate arguments of public methods (compatibility)
+                 : noneSelector();
+#pragma warning restore CA1062 // Validate arguments of public methods
         }
 
         // Methods that get the first field matching a pattern; otherwise throw
