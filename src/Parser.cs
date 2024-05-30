@@ -61,7 +61,7 @@ namespace Dsv
 
     partial struct TextRow : IList<string>, IReadOnlyList<string>
     {
-        readonly string[] _fields;
+        readonly string[]? _fields;
 
         internal TextRow(int lineNumber, string[] fields)
         {
@@ -74,7 +74,7 @@ namespace Dsv
         string[] Fields => _fields ??
         #if NETSTANDARD1_0
                            (_zeroFields ?? (_zeroFields = new string[0]));
-                           static string[] _zeroFields;
+                           static string[]? _zeroFields;
         #else
                            Array.Empty<string>();
         #endif
@@ -112,7 +112,7 @@ namespace Dsv
 
     static partial class Parser
     {
-        static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
+        static (Func<string, TextRow?> OnLine, Func<Exception?> OnEoi)
             Create(Format format, Func<string, bool> lineFilter) =>
             Internal.Parser.InternalCreate(format, lineFilter);
     }
@@ -140,8 +140,8 @@ namespace Dsv.Internal
 
     partial class Parser
     {
-        Func<string, TextRow?> _onLine;
-        Func<Exception> _onEoi;
+        Func<string, TextRow?>? _onLine;
+        Func<Exception?>? _onEoi;
 
         public static Parser Create(Format format) =>
             Create(format, _ => false);
@@ -155,7 +155,7 @@ namespace Dsv.Internal
             return new Parser(onLine, onEoi);
         }
 
-        Parser(Func<string, TextRow?> onLine, Func<Exception> onEoi)
+        Parser(Func<string, TextRow?> onLine, Func<Exception?> onEoi)
         {
             _onLine = onLine;
             _onEoi = onEoi;
@@ -177,7 +177,7 @@ namespace Dsv.Internal
         /// parsed due to incomplete input.
         /// </summary>
 
-        public Exception Terminate()
+        public Exception? Terminate()
         {
             switch (_onEoi)
             {
@@ -201,7 +201,7 @@ namespace Dsv.Internal
             AwaitNextRow
         }
 
-        internal static (Func<string, TextRow?> OnLine, Func<Exception> OnEoi)
+        internal static (Func<string, TextRow?> OnLine, Func<Exception?> OnEoi)
             InternalCreate(Format format, Func<string, bool> lineFilter)
         {
             var delimiter = format.Delimiter;
@@ -353,7 +353,7 @@ namespace Dsv.Internal
                 return new TextRow(rln, fields);
             }
 
-            Exception OnEoi() =>
+            Exception? OnEoi() =>
                 sb.Length > 0
                 ? new FormatException($"Unclosed quoted field (line #{ln}, col #{col}).")
                 : null;

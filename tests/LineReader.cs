@@ -29,7 +29,7 @@ namespace Dsv.Tests
         public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
             ReadLinesFromStream(streamFactory, null);
 
-        public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory, Encoding encoding)
+        public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory, Encoding? encoding)
         {
             if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
             return _(); IEnumerable<string> _()
@@ -40,14 +40,14 @@ namespace Dsv.Tests
             }
         }
 
-        static StreamReader OpenTextReader(this Stream stream, Encoding encoding)
+        static StreamReader OpenTextReader(this Stream stream, Encoding? encoding)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             try
             {
-                return encoding == null
-                     ? new StreamReader(stream)
-                     : new StreamReader(stream, encoding);
+                return encoding is { } someEncoding
+                     ? new StreamReader(stream, someEncoding)
+                     : new StreamReader(stream);
             }
             catch
             {
@@ -70,9 +70,8 @@ namespace Dsv.Tests
         public static IEnumerator<string> ReadLines(this TextReader reader)
         {
             if (reader == null) throw new ArgumentNullException(nameof(reader));
-            string line;
             using (reader)
-            while ((line = reader.ReadLine()) != null)
+            while (reader.ReadLine() is { } line)
                 yield return line;
         }
     }

@@ -63,9 +63,10 @@ namespace Dsv
         // Methods to find the first field matching a condition; otherwise
         // return an alternative when none match.
 
+        [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
         public static T FindFirstField<T>(this TextRow row, string sought,
             Func<string, int, T> someSelector) =>
-            row.FindFirstField(sought, someSelector, default(T));
+            row.FindFirstField(sought, someSelector, default(T)!);
 
         public static T FindFirstField<T>(this TextRow row, string sought,
             Func<string, int, T> someSelector, T none) =>
@@ -75,10 +76,11 @@ namespace Dsv
             Func<string, int, T> someSelector, Func<T> noneSelector) =>
             row.FindFirstField(sought, StringComparison.Ordinal, someSelector, noneSelector);
 
+        [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
         public static T FindFirstField<T>(this TextRow row,
             string sought, StringComparison comparison,
             Func<string, int, T> someSelector) =>
-            row.FindFirstField(sought, comparison, someSelector, default(T));
+            row.FindFirstField(sought, comparison, someSelector, default(T)!);
 
         public static T FindFirstField<T>(this TextRow row,
             string sought, StringComparison comparison,
@@ -112,18 +114,20 @@ namespace Dsv
         // Methods that find the first field matching a pattern; otherwise
         // return an alternative when none match.
 
+        [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
         public static T FindFirstMatch<T>(this TextRow row,
             string pattern, Func<string, int, Match, T> someSelector) =>
-            row.FindFirstMatch(pattern, someSelector, default(T));
+            row.FindFirstMatch(pattern, someSelector, default(T)!);
 
         public static T FindFirstMatch<T>(this TextRow row,
             string pattern, Func<string, int, Match, T> someSelector, T none) =>
             row.FindFirstMatch(pattern, RegexOptions.None, someSelector, none);
 
+        [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
         public static T FindFirstMatch<T>(this TextRow row,
             string pattern, RegexOptions options,
             Func<string, int, Match, T> someSelector) =>
-            row.FindFirstMatch(pattern, options, someSelector, default(T));
+            row.FindFirstMatch(pattern, options, someSelector, default(T)!);
 
         public static T FindFirstMatch<T>(this TextRow row,
             string pattern, RegexOptions options,

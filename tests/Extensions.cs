@@ -19,6 +19,7 @@ namespace Dsv.Tests
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Resources;
     using Xunit;
 
     static class Extensions
@@ -44,7 +45,8 @@ namespace Dsv.Tests
         public static Stream GetManifestResourceStream(this Type type, string resourceName)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return type.Assembly.GetManifestResourceStream(type, resourceName);
+            return type.Assembly.GetManifestResourceStream(type, resourceName)
+                ?? throw new MissingManifestResourceException($"Resource not found: {resourceName}");
         }
 
         #if !NO_ASYNC_STREAM

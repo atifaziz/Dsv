@@ -21,6 +21,8 @@
 //
 #endregion
 
+#nullable disable
+
 namespace Mannex.Text.RegularExpressions
 {
     #region Imports

@@ -64,22 +64,16 @@ namespace Dsv
 
             return Observable.Create((IObserver<TRow> o) =>
             {
-                var haveHead = false;
-                var head = default(THead);
+                (bool, THead) head = default;
 
                 return lines
                         .ParseDsv(format, lineFilter)
                         .Subscribe(row =>
                             {
-                                if (!haveHead)
-                                {
-                                    head = headSelector(row);
-                                    haveHead = true;
-                                }
+                                if (head is (true, { } someHead))
+                                    o.OnNext(rowSelector(someHead, row));
                                 else
-                                {
-                                    o.OnNext(rowSelector(head, row));
-                                }
+                                    head = (true, headSelector(row));
                             },
                             o.OnError,
                             o.OnCompleted);
@@ -171,7 +165,7 @@ namespace Dsv.Reactive
 
     static class Observer
     {
-        public static IObserver<T> Create<T>(Action<T> onNext, Action<Exception> onError = null, Action onCompleted = null) =>
+        public static IObserver<T> Create<T>(Action<T> onNext, Action<Exception>? onError = null, Action? onCompleted = null) =>
             new Observer<T>(onNext, onError, onCompleted);
     }
 
@@ -190,10 +184,10 @@ namespace Dsv.Reactive
     sealed class Observer<T> : IObserver<T>
     {
         readonly Action<T> _onNext;
-        readonly Action<Exception> _onError;
-        readonly Action _onCompleted;
+        readonly Action<Exception>? _onError;
+        readonly Action? _onCompleted;
 
-        public Observer(Action<T> onNext, Action<Exception> onError = null, Action onCompleted = null)
+        public Observer(Action<T> onNext, Action<Exception>? onError = null, Action? onCompleted = null)
         {
             _onNext = onNext ?? throw new ArgumentNullException(nameof(onNext));
             _onError = onError;
