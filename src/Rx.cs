@@ -174,11 +174,11 @@ namespace Dsv.Reactive
     sealed class Observable<T>(Func<IObserver<T>, IDisposable> subscriptionHandler) :
         IObservable<T>
     {
-        readonly Func<IObserver<T>, IDisposable> _subscriptionHandler = subscriptionHandler
-                                                                        ?? throw new ArgumentNullException(nameof(subscriptionHandler));
+        readonly Func<IObserver<T>, IDisposable> subscriptionHandler = subscriptionHandler
+                                                                       ?? throw new ArgumentNullException(nameof(subscriptionHandler));
 
         public IDisposable Subscribe(IObserver<T> observer) =>
-            _subscriptionHandler(observer);
+            this.subscriptionHandler(observer);
     }
 
     sealed class Observer<T>(Action<T> onNext,
@@ -186,10 +186,10 @@ namespace Dsv.Reactive
                              Action? onCompleted = null) :
         IObserver<T>
     {
-        readonly Action<T> _onNext = onNext ?? throw new ArgumentNullException(nameof(onNext));
+        readonly Action<T> onNext = onNext ?? throw new ArgumentNullException(nameof(onNext));
 
         public void OnCompleted() => onCompleted?.Invoke();
         public void OnError(Exception error) => onError?.Invoke(error);
-        public void OnNext(T value) => _onNext(value);
+        public void OnNext(T value) => this.onNext(value);
     }
 }

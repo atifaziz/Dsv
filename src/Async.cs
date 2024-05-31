@@ -73,7 +73,7 @@ namespace Dsv
                 var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
                 await using var _ = row.ConfigureAwait(false);
 
-                if (!(await row.MoveNextAsync().ConfigureAwait(false)))
+                if (!await row.MoveNextAsync().ConfigureAwait(false))
                     yield break;
 
                 var head = headSelector(row.Current);

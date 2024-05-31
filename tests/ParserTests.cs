@@ -126,11 +126,12 @@ namespace Dsv.Tests
                     #pragma warning restore 162
                 }
 
-                Lines().ParseDsv<object, object>(
-                    format: Format.Csv,
-                    lineFilter  : delegate { throw new NotImplementedException(); },
-                    headSelector: delegate { throw new NotImplementedException(); },
-                    rowSelector : delegate { throw new NotImplementedException(); });
+                _ = Lines()
+                    .ParseDsv<object, object>(
+                        format: Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : delegate { throw new NotImplementedException(); });
             }
         }
 
@@ -242,11 +243,12 @@ namespace Dsv.Tests
 
                 #pragma warning restore 1998
 
-                Lines().ParseDsv<object, object>(
-                    format: Format.Csv,
-                    lineFilter  : delegate { throw new NotImplementedException(); },
-                    headSelector: delegate { throw new NotImplementedException(); },
-                    rowSelector : delegate { throw new NotImplementedException(); });
+                _ = Lines()
+                    .ParseDsv<object, object>(
+                        format: Format.Csv,
+                        lineFilter  : delegate { throw new NotImplementedException(); },
+                        headSelector: delegate { throw new NotImplementedException(); },
+                        rowSelector : delegate { throw new NotImplementedException(); });
             }
 
             [Fact]
@@ -340,9 +342,9 @@ namespace Dsv.Tests
             [Fact]
             public void ParseIsLazy()
             {
-                IObservable<string> Lines() => throw new InvalidOperationException();
+                static IObservable<string> Lines() => throw new InvalidOperationException();
 
-                Observable
+                _ = Observable
                     .Defer(Lines)
                     .ParseDsv<object, object>(
                         format: Format.Csv,
@@ -374,7 +376,7 @@ namespace Dsv.Tests
                     Assert.True(row.MoveNext(), "Source has too many rows.");
                     var (ln, fs) = row.Current;
                     Assert.Equal(ln, fields.LineNumber);
-                    Assert.Equal(fs, fields.ToArray());
+                    Assert.Equal(fs.AsSpan(), [..fields]);
                 }
 
                 Assert.False(row.MoveNext(), "Source has too few rows.");

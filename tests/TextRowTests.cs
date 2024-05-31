@@ -28,30 +28,30 @@ namespace Dsv.Tests
         [Fact]
         public void Find()
         {
-            var result = Row.Find((s, i) => s[0] == 'f' || s[0] == 'F');
-            Assert.Equal(new[] { 0, 3, 6 }, from e in result select e.Index);
-            Assert.Equal(new[] { "foo", "Foo", "FOO" }, from e in result select e.Field);
+            var result = Row.Find((s, i) => s is ['f' or 'F', ..]);
+            Assert.Equal([0, 3, 6], from e in result select e.Index);
+            Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
         }
 
         [Fact]
         public void FindCustom()
         {
-            var result = Row.Find((s, i) => s[0] == 'f' || s[0] == 'F' ? (true, new { Field = s, Index = i }) : default);
-            Assert.Equal(new[] { 0, 3, 6 }, from e in result select e.Index);
-            Assert.Equal(new[] { "foo", "Foo", "FOO" }, from e in result select e.Field);
+            var result = Row.Find((s, i) => s is ['f' or 'F', ..] ? (true, new { Field = s, Index = i }) : default);
+            Assert.Equal([0, 3, 6], from e in result select e.Index);
+            Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
         }
 
         [Fact]
         public void FindIndex()
         {
-            Assert.Equal(new[] { 0, 3, 6 }, Row.FindIndex(s => s[0] == 'f' || s[0] == 'F'));
+            Assert.Equal([0, 3, 6], Row.FindIndex(s => s is ['f' or 'F', ..]));
         }
 
         [Fact]
         public void Match()
         {
             var result = Row.Match("^[fB]..", (s, i, m) => new { Field = s, Index = i, Match = m.Value });
-            Assert.Equal(new[] { 0, 4, 5, 7, 8 }, from e in result select e.Index);
+            Assert.Equal([0, 4, 5, 7, 8], from e in result select e.Index);
             var hit = new[] { "foo", "Bar", "Baz", "BAR", "BAZ" };
             Assert.Equal(hit, from e in result select e.Field);
             Assert.Equal(hit, from e in result select e.Match);
@@ -62,7 +62,7 @@ namespace Dsv.Tests
         {
             var result = Row.Match("^.a.$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
                                    (s, i, m) => new { Field = s, Index = i, Match = m.Value });
-            Assert.Equal(new[] { 1, 2, 4, 5, 7, 8 }, from e in result select e.Index);
+            Assert.Equal([1, 2, 4, 5, 7, 8], from e in result select e.Index);
             var hit = new[] { "bar", "baz", "Bar", "Baz", "BAR", "BAZ" };
             Assert.Equal(hit, from e in result select e.Field);
             Assert.Equal(hit, from e in result select e.Match);

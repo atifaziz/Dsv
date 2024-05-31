@@ -63,20 +63,20 @@ namespace Dsv
     readonly partial struct TextRow : IList<string>, IReadOnlyList<string>
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        readonly string[]? _fields;
+        readonly string[]? fields;
 
         internal TextRow(int lineNumber, string[] fields)
         {
             LineNumber = lineNumber;
-            _fields = fields ?? throw new ArgumentNullException(nameof(fields));
+            this.fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
         public int LineNumber { get; }
 
-        string[] Fields => _fields ??
+        string[] Fields => this.fields ??
         #if NETSTANDARD1_0
-                           (_zeroFields ??= []);
-                           static string[]? _zeroFields;
+                           (zeroFields ??= []);
+                           static string[]? zeroFields;
         #else
                            [];
         #endif
@@ -142,8 +142,8 @@ namespace Dsv.Internal
 
     partial class Parser
     {
-        Func<string, TextRow?>? _onLine;
-        Func<Exception?>? _onEoi;
+        Func<string, TextRow?>? onLine;
+        Func<Exception?>? onEoi;
 
         public static Parser Create(Format format) =>
             Create(format, _ => false);
@@ -159,8 +159,8 @@ namespace Dsv.Internal
 
         Parser(Func<string, TextRow?> onLine, Func<Exception?> onEoi)
         {
-            _onLine = onLine;
-            _onEoi = onEoi;
+            this.onLine = onLine;
+            this.onEoi = onEoi;
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Dsv.Internal
         /// fully parsed.
         /// </summary>
 
-        public TextRow? ReceiveLine(string line) => _onLine switch
+        public TextRow? ReceiveLine(string line) => this.onLine switch
         {
             null     => throw new InvalidOperationException(),
             var some => some(line)
@@ -181,13 +181,13 @@ namespace Dsv.Internal
 
         public Exception? Terminate()
         {
-            switch (_onEoi)
+            switch (this.onEoi)
             {
                 case null:
                     throw new InvalidOperationException();
                 case var some:
-                    _onEoi = null;
-                    _onLine = null;
+                    this.onEoi = null;
+                    this.onLine = null;
                     return some();
             }
         }
@@ -240,7 +240,7 @@ namespace Dsv.Internal
                     state = State.AtFieldStart;
                 }
                 ln++;
-                if (state != State.InQuotedField && state != State.Escaping)
+                if (state is not State.InQuotedField and not State.Escaping)
                 {
                     rln++;
                     if (lineFilter(line))
@@ -251,7 +251,9 @@ namespace Dsv.Internal
                 {
                     col++;
                     reswitch:
+#pragma warning disable IDE0010 // Add missing cases
                     switch (state)
+#pragma warning restore IDE0010 // Add missing cases
                     {
                         case State.AtFieldStart:
                             if (ch == quote)
@@ -268,7 +270,7 @@ namespace Dsv.Internal
                             }
                             else
                             {
-                                sb.Append(ch);
+                                _ = sb.Append(ch);
                                 state = State.InField;
                             }
                             break;
@@ -279,7 +281,7 @@ namespace Dsv.Internal
                             else if (ch == escape && quote == null)
                                 state = State.Escaping;
                             else
-                                sb.Append(ch);
+                                _ = sb.Append(ch);
                             break;
 
                         case State.ExpectingDelimiter:
@@ -291,7 +293,7 @@ namespace Dsv.Internal
                             break;
 
                         case State.Escaping:
-                            sb.Append(ch);
+                            _ = sb.Append(ch);
                             state = quote != null
                                    ? State.InQuotedField
                                    : State.InField;
@@ -300,7 +302,7 @@ namespace Dsv.Internal
                         case State.QuoteQuote:
                             if (ch == quote)
                             {
-                                sb.Append(ch);
+                                _ = sb.Append(ch);
                                 state = State.InQuotedField;
                             }
                             else
@@ -318,10 +320,13 @@ namespace Dsv.Internal
                                 else
                                     CommitField(State.ExpectingDelimiter);
                             }
-                            else if (ch == escape)
-                                state = State.Escaping;
                             else
-                                sb.Append(ch);
+                            {
+                                if (ch == escape)
+                                    state = State.Escaping;
+                                else
+                                    _ = sb.Append(ch);
+                            }
                             break;
 
                         default:
@@ -331,11 +336,13 @@ namespace Dsv.Internal
                     }
                 }
 
+#pragma warning disable IDE0010 // Add missing cases
                 switch (state)
+#pragma warning restore IDE0010 // Add missing cases
                 {
                     case State.Escaping:
                     case State.InQuotedField:
-                        sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
+                        _ = sb.Append(nl ?? throw new FormatException($"Unclosed quoted field (line #{ln}, col #{col + 1})."));
                         return null;
 
                     case State.AtFieldStart:

@@ -16,6 +16,9 @@ dotnet_diagnostic.CA2208.severity = suggestion
 # CA1507: Use nameof to express symbol names
 dotnet_diagnostic.CA1507.severity = suggestion
 
+# IDE0270: Use coalesce expression
+dotnet_diagnostic.IDE0270.severity = suggestion
+
 [*Tests.cs]
 
 # CA1034: Nested types should not be visible

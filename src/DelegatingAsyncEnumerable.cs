@@ -25,10 +25,10 @@ namespace Dsv
     sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) :
         IAsyncEnumerable<T>
     {
-        readonly Func<CancellationToken, IAsyncEnumerator<T>> _delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
+        readonly Func<CancellationToken, IAsyncEnumerator<T>> delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
-            _delegatee(cancellationToken);
+            this.delegatee(cancellationToken);
     }
 }
 

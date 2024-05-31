@@ -22,23 +22,23 @@ namespace Dsv.Tests
     {
         public sealed class CustomDelimiterFormat
         {
-            readonly Format _delimiterInitializedFormat = new('\0');
+            readonly Format delimiterInitializedFormat = new('\0');
 
             [Fact]
             public void ReturnsCustomDelimiter() =>
-                Assert.Equal('\0', _delimiterInitializedFormat.Delimiter);
+                Assert.Equal('\0', this.delimiterInitializedFormat.Delimiter);
 
             [Fact]
             public void QuoteIsQuote() =>
-                Assert.Equal('"', _delimiterInitializedFormat.Quote);
+                Assert.Equal('"', this.delimiterInitializedFormat.Quote);
 
             [Fact]
             public void EscapeIsQuote() =>
-                Assert.Equal(_delimiterInitializedFormat.Quote, _delimiterInitializedFormat.Escape);
+                Assert.Equal(this.delimiterInitializedFormat.Quote, this.delimiterInitializedFormat.Escape);
 
             [Fact]
             public void NewLineIsLineFeed() =>
-                Assert.Equal("\n", _delimiterInitializedFormat.NewLine);
+                Assert.Equal("\n", this.delimiterInitializedFormat.NewLine);
         }
 
         public sealed class Csv

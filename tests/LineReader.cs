@@ -70,7 +70,7 @@ namespace Dsv.Tests
         public static IEnumerator<string> ReadLines(this TextReader reader)
         {
             if (reader == null) throw new ArgumentNullException(nameof(reader));
-            using (reader)
+            using var _ = reader;
             while (reader.ReadLine() is { } line)
                 yield return line;
         }
