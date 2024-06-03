@@ -14,18 +14,17 @@
 //
 #endregion
 
-namespace Dsv.Tests
+using System;
+using System.IO;
+using System.Text;
+
+namespace Dsv.Tests;
+
+static class Source
 {
-    using System;
-    using System.IO;
-    using System.Text;
+    public static Func<StreamReader> TextFile(string path) =>
+        () => new StreamReader(path);
 
-    static class Source
-    {
-        public static Func<StreamReader> TextFile(string path) =>
-            () => new StreamReader(path);
-
-        public static Func<StreamReader> TextFile(string path, Encoding encoding) =>
-            () => new StreamReader(path, encoding);
-    }
+    public static Func<StreamReader> TextFile(string path, Encoding encoding) =>
+        () => new StreamReader(path, encoding);
 }

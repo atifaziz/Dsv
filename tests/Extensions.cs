@@ -14,39 +14,38 @@
 //
 #endregion
 
-namespace Dsv.Tests
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Resources;
+using Xunit;
+
+namespace Dsv.Tests;
+
+static class Extensions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Resources;
-    using Xunit;
-
-    static class Extensions
+    public static TheoryData<T1, T2, T3, T4,
+                             T5, T6, T7, T8,
+                             T9> ToTheoryData<T1, T2, T3, T4,
+                                              T5, T6, T7, T8,
+                                              T9>(
+        this IEnumerable<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> rows)
     {
-        public static TheoryData<T1, T2, T3, T4,
-                                 T5, T6, T7, T8,
-                                 T9> ToTheoryData<T1, T2, T3, T4,
-                                                  T5, T6, T7, T8,
-                                                  T9>(
-            this IEnumerable<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> rows)
+        if (rows == null) throw new ArgumentNullException(nameof(rows));
+        var data = new TheoryData<T1, T2, T3, T4, T5, T6, T7, T8, T9>();
+        foreach (var row in rows)
         {
-            if (rows == null) throw new ArgumentNullException(nameof(rows));
-            var data = new TheoryData<T1, T2, T3, T4, T5, T6, T7, T8, T9>();
-            foreach (var row in rows)
-            {
-                data.Add(row.Item1, row.Item2, row.Item3, row.Item4,
-                         row.Item5, row.Item6, row.Item7, row.Item8,
-                         row.Item9);
-            }
-            return data;
+            data.Add(row.Item1, row.Item2, row.Item3, row.Item4,
+                     row.Item5, row.Item6, row.Item7, row.Item8,
+                     row.Item9);
         }
+        return data;
+    }
 
-        public static Stream GetManifestResourceStream(this Type type, string resourceName)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            return type.Assembly.GetManifestResourceStream(type, resourceName)
-                ?? throw new MissingManifestResourceException($"Resource not found: {resourceName}");
-        }
+    public static Stream GetManifestResourceStream(this Type type, string resourceName)
+    {
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        return type.Assembly.GetManifestResourceStream(type, resourceName)
+            ?? throw new MissingManifestResourceException($"Resource not found: {resourceName}");
     }
 }

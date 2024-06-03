@@ -16,20 +16,19 @@
 
 #if !NO_ASYNC_STREAM
 
-namespace Dsv
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+namespace Dsv;
+
+sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) :
+    IAsyncEnumerable<T>
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
+    readonly Func<CancellationToken, IAsyncEnumerator<T>> delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
 
-    sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) :
-        IAsyncEnumerable<T>
-    {
-        readonly Func<CancellationToken, IAsyncEnumerator<T>> delegatee = delegatee ?? throw new ArgumentNullException(nameof(delegatee));
-
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
-            this.delegatee(cancellationToken);
-    }
+    public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+        this.delegatee(cancellationToken);
 }
 
 #endif // !NO_ASYNC_STREAM

@@ -14,167 +14,166 @@
 //
 #endregion
 
-namespace Dsv.Tests
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Xunit;
+
+namespace Dsv.Tests;
+
+public sealed class TextRowTests
 {
-    using System;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using Xunit;
+    static readonly TextRow Row = new[] { @"foo,bar,baz,Foo,Bar,Baz,FOO,BAR,BAZ" }.ParseCsv().Single();
 
-    public sealed class TextRowTests
+    [Fact]
+    public void Find()
     {
-        static readonly TextRow Row = new[] { @"foo,bar,baz,Foo,Bar,Baz,FOO,BAR,BAZ" }.ParseCsv().Single();
+        var result = Row.Find((s, i) => s is ['f' or 'F', ..]);
+        Assert.Equal([0, 3, 6], from e in result select e.Index);
+        Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
+    }
 
-        [Fact]
-        public void Find()
-        {
-            var result = Row.Find((s, i) => s is ['f' or 'F', ..]);
-            Assert.Equal([0, 3, 6], from e in result select e.Index);
-            Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
-        }
+    [Fact]
+    public void FindCustom()
+    {
+        var result = Row.Find((s, i) => s is ['f' or 'F', ..] ? (true, new { Field = s, Index = i }) : default);
+        Assert.Equal([0, 3, 6], from e in result select e.Index);
+        Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
+    }
 
-        [Fact]
-        public void FindCustom()
-        {
-            var result = Row.Find((s, i) => s is ['f' or 'F', ..] ? (true, new { Field = s, Index = i }) : default);
-            Assert.Equal([0, 3, 6], from e in result select e.Index);
-            Assert.Equal(["foo", "Foo", "FOO"], from e in result select e.Field);
-        }
+    [Fact]
+    public void FindIndex()
+    {
+        Assert.Equal([0, 3, 6], Row.FindIndex(s => s is ['f' or 'F', ..]));
+    }
 
-        [Fact]
-        public void FindIndex()
-        {
-            Assert.Equal([0, 3, 6], Row.FindIndex(s => s is ['f' or 'F', ..]));
-        }
+    [Fact]
+    public void Match()
+    {
+        var result = Row.Match("^[fB]..", (s, i, m) => new { Field = s, Index = i, Match = m.Value });
+        Assert.Equal([0, 4, 5, 7, 8], from e in result select e.Index);
+        var hit = new[] { "foo", "Bar", "Baz", "BAR", "BAZ" };
+        Assert.Equal(hit, from e in result select e.Field);
+        Assert.Equal(hit, from e in result select e.Match);
+    }
 
-        [Fact]
-        public void Match()
-        {
-            var result = Row.Match("^[fB]..", (s, i, m) => new { Field = s, Index = i, Match = m.Value });
-            Assert.Equal([0, 4, 5, 7, 8], from e in result select e.Index);
-            var hit = new[] { "foo", "Bar", "Baz", "BAR", "BAZ" };
-            Assert.Equal(hit, from e in result select e.Field);
-            Assert.Equal(hit, from e in result select e.Match);
-        }
+    [Fact]
+    public void MatchIgnoringCase()
+    {
+        var result = Row.Match("^.a.$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                               (s, i, m) => new { Field = s, Index = i, Match = m.Value });
+        Assert.Equal([1, 2, 4, 5, 7, 8], from e in result select e.Index);
+        var hit = new[] { "bar", "baz", "Bar", "Baz", "BAR", "BAZ" };
+        Assert.Equal(hit, from e in result select e.Field);
+        Assert.Equal(hit, from e in result select e.Match);
+    }
 
-        [Fact]
-        public void MatchIgnoringCase()
+    public sealed class GetFirstIndex
+    {
+        [Theory]
+        [InlineData(0, "foo")]
+        [InlineData(1, "bar")]
+        [InlineData(2, "baz")]
+        [InlineData(3, "Foo")]
+        [InlineData(4, "Bar")]
+        [InlineData(5, "Baz")]
+        [InlineData(6, "FOO")]
+        [InlineData(7, "BAR")]
+        [InlineData(8, "BAZ")]
+        public void ReturnsIndexOfSoughtString(int index, string sought)
         {
-            var result = Row.Match("^.a.$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
-                                   (s, i, m) => new { Field = s, Index = i, Match = m.Value });
-            Assert.Equal([1, 2, 4, 5, 7, 8], from e in result select e.Index);
-            var hit = new[] { "bar", "baz", "Bar", "Baz", "BAR", "BAZ" };
-            Assert.Equal(hit, from e in result select e.Field);
-            Assert.Equal(hit, from e in result select e.Match);
-        }
-
-        public sealed class GetFirstIndex
-        {
-            [Theory]
-            [InlineData(0, "foo")]
-            [InlineData(1, "bar")]
-            [InlineData(2, "baz")]
-            [InlineData(3, "Foo")]
-            [InlineData(4, "Bar")]
-            [InlineData(5, "Baz")]
-            [InlineData(6, "FOO")]
-            [InlineData(7, "BAR")]
-            [InlineData(8, "BAZ")]
-            public void ReturnsIndexOfSoughtString(int index, string sought)
-            {
 #pragma warning disable CA1307 // Specify StringComparison for clarity
-                var result = Row.GetFirstIndex(sought);
+            var result = Row.GetFirstIndex(sought);
 #pragma warning restore CA1307 // Specify StringComparison for clarity
-                Assert.Equal(index, result);
-            }
+            Assert.Equal(index, result);
+        }
 
-            [Fact]
-            public void ThrowsOnNoMatch() =>
-                Assert.Throws<InvalidOperationException>(() =>
+        [Fact]
+        public void ThrowsOnNoMatch() =>
+            Assert.Throws<InvalidOperationException>(() =>
 #pragma warning disable CA1307 // Specify StringComparison for clarity
-                    Row.GetFirstIndex("?"));
+                Row.GetFirstIndex("?"));
 #pragma warning restore CA1307 // Specify StringComparison for clarity
 
-            [Theory]
-            [InlineData(0, "foo", StringComparison.Ordinal)]
-            [InlineData(1, "bar", StringComparison.Ordinal)]
-            [InlineData(2, "baz", StringComparison.Ordinal)]
-            [InlineData(3, "Foo", StringComparison.Ordinal)]
-            [InlineData(4, "Bar", StringComparison.Ordinal)]
-            [InlineData(5, "Baz", StringComparison.Ordinal)]
-            [InlineData(6, "FOO", StringComparison.Ordinal)]
-            [InlineData(7, "BAR", StringComparison.Ordinal)]
-            [InlineData(8, "BAZ", StringComparison.Ordinal)]
-            [InlineData(0, "FoO", StringComparison.OrdinalIgnoreCase)]
-            [InlineData(1, "BaR", StringComparison.OrdinalIgnoreCase)]
-            [InlineData(2, "BaZ", StringComparison.OrdinalIgnoreCase)]
-            public void WithComparisonReturnsIndexOfSoughtString(int index, string sought, StringComparison comparison) =>
-                Assert.Equal(index, Row.GetFirstIndex(sought, comparison));
+        [Theory]
+        [InlineData(0, "foo", StringComparison.Ordinal)]
+        [InlineData(1, "bar", StringComparison.Ordinal)]
+        [InlineData(2, "baz", StringComparison.Ordinal)]
+        [InlineData(3, "Foo", StringComparison.Ordinal)]
+        [InlineData(4, "Bar", StringComparison.Ordinal)]
+        [InlineData(5, "Baz", StringComparison.Ordinal)]
+        [InlineData(6, "FOO", StringComparison.Ordinal)]
+        [InlineData(7, "BAR", StringComparison.Ordinal)]
+        [InlineData(8, "BAZ", StringComparison.Ordinal)]
+        [InlineData(0, "FoO", StringComparison.OrdinalIgnoreCase)]
+        [InlineData(1, "BaR", StringComparison.OrdinalIgnoreCase)]
+        [InlineData(2, "BaZ", StringComparison.OrdinalIgnoreCase)]
+        public void WithComparisonReturnsIndexOfSoughtString(int index, string sought, StringComparison comparison) =>
+            Assert.Equal(index, Row.GetFirstIndex(sought, comparison));
 
-            [Fact]
-            public void WithComparisonThrowsOnNoMatch() =>
-                Assert.Throws<InvalidOperationException>(() =>
-                    Row.GetFirstIndex("F00", StringComparison.OrdinalIgnoreCase));
+        [Fact]
+        public void WithComparisonThrowsOnNoMatch() =>
+            Assert.Throws<InvalidOperationException>(() =>
+                Row.GetFirstIndex("F00", StringComparison.OrdinalIgnoreCase));
 
-            [Fact]
-            public void WithMatchingPredicateReturnsIndex() =>
-                Assert.Equal(1, Row.GetFirstIndex(s => s[1] == 'a'));
+        [Fact]
+        public void WithMatchingPredicateReturnsIndex() =>
+            Assert.Equal(1, Row.GetFirstIndex(s => s[1] == 'a'));
 
-            [Fact]
-            public void WithNonMatchingPredicateThrows() =>
-                Assert.Throws<InvalidOperationException>(() =>
-                    Row.GetFirstIndex(s => s[0] == 'z'));
-        }
+        [Fact]
+        public void WithNonMatchingPredicateThrows() =>
+            Assert.Throws<InvalidOperationException>(() =>
+                Row.GetFirstIndex(s => s[0] == 'z'));
+    }
 
-        public sealed class FindFirstIndex
+    public sealed class FindFirstIndex
+    {
+        [Theory]
+        [InlineData( 0, "foo")]
+        [InlineData( 1, "bar")]
+        [InlineData( 2, "baz")]
+        [InlineData( 3, "Foo")]
+        [InlineData( 4, "Bar")]
+        [InlineData( 5, "Baz")]
+        [InlineData( 6, "FOO")]
+        [InlineData( 7, "BAR")]
+        [InlineData( 8, "BAZ")]
+        [InlineData(-1, "-")]
+        [InlineData(-1, "?")]
+        public void ReturnsIndexOfSoughtString(int index, string sought)
         {
-            [Theory]
-            [InlineData( 0, "foo")]
-            [InlineData( 1, "bar")]
-            [InlineData( 2, "baz")]
-            [InlineData( 3, "Foo")]
-            [InlineData( 4, "Bar")]
-            [InlineData( 5, "Baz")]
-            [InlineData( 6, "FOO")]
-            [InlineData( 7, "BAR")]
-            [InlineData( 8, "BAZ")]
-            [InlineData(-1, "-")]
-            [InlineData(-1, "?")]
-            public void ReturnsIndexOfSoughtString(int index, string sought)
-            {
 #pragma warning disable CA1307 // Specify StringComparison for clarity
-                var result = Row.FindFirstIndex(sought) ?? -1;
+            var result = Row.FindFirstIndex(sought) ?? -1;
 #pragma warning restore CA1307 // Specify StringComparison for clarity
-                Assert.Equal(index, result);
-            }
-
-            [Theory]
-            [InlineData( 0, "foo", StringComparison.Ordinal)]
-            [InlineData( 1, "bar", StringComparison.Ordinal)]
-            [InlineData( 2, "baz", StringComparison.Ordinal)]
-            [InlineData( 3, "Foo", StringComparison.Ordinal)]
-            [InlineData( 4, "Bar", StringComparison.Ordinal)]
-            [InlineData( 5, "Baz", StringComparison.Ordinal)]
-            [InlineData( 6, "FOO", StringComparison.Ordinal)]
-            [InlineData( 7, "BAR", StringComparison.Ordinal)]
-            [InlineData( 8, "BAZ", StringComparison.Ordinal)]
-            [InlineData(-1, "-"  , StringComparison.Ordinal)]
-            [InlineData(-1, "?"  , StringComparison.Ordinal)]
-            [InlineData( 0, "FoO", StringComparison.OrdinalIgnoreCase)]
-            [InlineData( 1, "BaR", StringComparison.OrdinalIgnoreCase)]
-            [InlineData( 2, "BaZ", StringComparison.OrdinalIgnoreCase)]
-            [InlineData(-1, "-"  , StringComparison.OrdinalIgnoreCase)]
-            [InlineData(-1, "?"  , StringComparison.OrdinalIgnoreCase)]
-            public void WithComparisonReturnsIndexOfSoughtString(int index, string sought, StringComparison comparison) =>
-                Assert.Equal(index, Row.FindFirstIndex(sought, comparison) ?? -1);
-
-            [Fact]
-            public void WithMatchingPredicateReturnsIndex() =>
-                Assert.Equal(1, Row.FindFirstIndex(s => s[1] == 'a'));
-
-            [Fact]
-            public void WithNonMatchingPredicateReturnsNull() =>
-                Assert.Null(Row.FindFirstIndex(s => s[1] == 'x'));
+            Assert.Equal(index, result);
         }
+
+        [Theory]
+        [InlineData( 0, "foo", StringComparison.Ordinal)]
+        [InlineData( 1, "bar", StringComparison.Ordinal)]
+        [InlineData( 2, "baz", StringComparison.Ordinal)]
+        [InlineData( 3, "Foo", StringComparison.Ordinal)]
+        [InlineData( 4, "Bar", StringComparison.Ordinal)]
+        [InlineData( 5, "Baz", StringComparison.Ordinal)]
+        [InlineData( 6, "FOO", StringComparison.Ordinal)]
+        [InlineData( 7, "BAR", StringComparison.Ordinal)]
+        [InlineData( 8, "BAZ", StringComparison.Ordinal)]
+        [InlineData(-1, "-"  , StringComparison.Ordinal)]
+        [InlineData(-1, "?"  , StringComparison.Ordinal)]
+        [InlineData( 0, "FoO", StringComparison.OrdinalIgnoreCase)]
+        [InlineData( 1, "BaR", StringComparison.OrdinalIgnoreCase)]
+        [InlineData( 2, "BaZ", StringComparison.OrdinalIgnoreCase)]
+        [InlineData(-1, "-"  , StringComparison.OrdinalIgnoreCase)]
+        [InlineData(-1, "?"  , StringComparison.OrdinalIgnoreCase)]
+        public void WithComparisonReturnsIndexOfSoughtString(int index, string sought, StringComparison comparison) =>
+            Assert.Equal(index, Row.FindFirstIndex(sought, comparison) ?? -1);
+
+        [Fact]
+        public void WithMatchingPredicateReturnsIndex() =>
+            Assert.Equal(1, Row.FindFirstIndex(s => s[1] == 'a'));
+
+        [Fact]
+        public void WithNonMatchingPredicateReturnsNull() =>
+            Assert.Null(Row.FindFirstIndex(s => s[1] == 'x'));
     }
 }

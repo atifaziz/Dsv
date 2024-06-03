@@ -14,11 +14,11 @@
 //
 #endregion
 
+using System;
+using Dsv.Reactive;
+
 namespace Dsv
 {
-    using System;
-    using Reactive;
-
     partial class Parser
     {
         public static IObservable<(T Header, TextRow Row)>
@@ -126,8 +126,6 @@ namespace Dsv
 
 namespace Dsv.Reactive
 {
-    using System;
-
     static class Observable
     {
         public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscriptionHandler) =>

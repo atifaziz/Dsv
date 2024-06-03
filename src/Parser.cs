@@ -14,12 +14,13 @@
 //
 #endregion
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+
 namespace Dsv
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-
     sealed partial class Format
     {
         public static readonly Format Csv = new(',');
@@ -122,9 +123,6 @@ namespace Dsv
 
 namespace Dsv.Internal
 {
-    using System;
-    using System.Text;
-
     /// <summary>
     /// The core implementation as a state machine.
     /// </summary>

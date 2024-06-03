@@ -14,65 +14,64 @@
 //
 #endregion
 
-namespace Dsv.Tests
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace Dsv.Tests;
+
+static class LineReader
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Text;
+    public static IEnumerable<string> SplitIntoLines(this string input) =>
+        ReadLines(() => new StringReader(input));
 
-    static class LineReader
+    public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
+        ReadLinesFromStream(streamFactory, null);
+
+    public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory, Encoding? encoding)
     {
-        public static IEnumerable<string> SplitIntoLines(this string input) =>
-            ReadLines(() => new StringReader(input));
-
-        public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory) =>
-            ReadLinesFromStream(streamFactory, null);
-
-        public static IEnumerable<string> ReadLinesFromStream(Func<Stream> streamFactory, Encoding? encoding)
+        if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
+        return _(); IEnumerable<string> _()
         {
-            if (streamFactory == null) throw new ArgumentNullException(nameof(streamFactory));
-            return _(); IEnumerable<string> _()
-            {
-                using var line = streamFactory().OpenTextReader(encoding).ReadLines();
-                while (line.MoveNext())
-                    yield return line.Current;
-            }
+            using var line = streamFactory().OpenTextReader(encoding).ReadLines();
+            while (line.MoveNext())
+                yield return line.Current;
         }
+    }
 
-        static StreamReader OpenTextReader(this Stream stream, Encoding? encoding)
+    static StreamReader OpenTextReader(this Stream stream, Encoding? encoding)
+    {
+        if (stream == null) throw new ArgumentNullException(nameof(stream));
+        try
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
-            try
-            {
-                return encoding is { } someEncoding
-                     ? new StreamReader(stream, someEncoding)
-                     : new StreamReader(stream);
-            }
-            catch
-            {
-                stream.Close();
-                throw;
-            }
+            return encoding is { } someEncoding
+                 ? new StreamReader(stream, someEncoding)
+                 : new StreamReader(stream);
         }
+        catch
+        {
+            stream.Close();
+            throw;
+        }
+    }
 
-        public static IEnumerable<string> ReadLines(Func<TextReader> readerFactory)
+    public static IEnumerable<string> ReadLines(Func<TextReader> readerFactory)
+    {
+        if (readerFactory == null) throw new ArgumentNullException(nameof(readerFactory));
+        return _(); IEnumerable<string> _()
         {
-            if (readerFactory == null) throw new ArgumentNullException(nameof(readerFactory));
-            return _(); IEnumerable<string> _()
-            {
-                using var line = readerFactory().ReadLines();
-                while (line.MoveNext())
-                    yield return line.Current;
-            }
+            using var line = readerFactory().ReadLines();
+            while (line.MoveNext())
+                yield return line.Current;
         }
+    }
 
-        public static IEnumerator<string> ReadLines(this TextReader reader)
-        {
-            if (reader == null) throw new ArgumentNullException(nameof(reader));
-            using var _ = reader;
-            while (reader.ReadLine() is { } line)
-                yield return line;
-        }
+    public static IEnumerator<string> ReadLines(this TextReader reader)
+    {
+        if (reader == null) throw new ArgumentNullException(nameof(reader));
+        using var _ = reader;
+        while (reader.ReadLine() is { } line)
+            yield return line;
     }
 }

@@ -16,105 +16,104 @@
 
 #if !NO_ASYNC_STREAM
 
-namespace Dsv
-{
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
-    static partial class Parser
+namespace Dsv;
+
+static partial class Parser
+{
+    public static IAsyncEnumerable<(T Header, TextRow Row)>
+        ParseCsv<T>(this IAsyncEnumerable<string> lines,
+                    Func<TextRow, T> headSelector) =>
+        lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
+
+    public static IAsyncEnumerable<TRow> ParseCsv<THead, TRow>(this IAsyncEnumerable<string> lines,
+        Func<TextRow, THead> headSelector,
+        Func<THead, TextRow, TRow> rowSelector) =>
+        lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+
+    public static IAsyncEnumerable<(T Header, TextRow Row)>
+        ParseDsv<T>(this IAsyncEnumerable<string> lines,
+                    Format format,
+                    Func<TextRow, T> headSelector) =>
+        lines.ParseDsv(format, _ => false, headSelector);
+
+    public static IAsyncEnumerable<(T Header, TextRow Row)>
+        ParseDsv<T>(this IAsyncEnumerable<string> lines,
+                    Format format,
+                    Func<string, bool> lineFilter,
+                    Func<TextRow, T> headSelector) =>
+        lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
+
+    public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
+        Format format,
+        Func<TextRow, THead> headSelector,
+        Func<THead, TextRow, TRow> rowSelector) =>
+        lines.ParseDsv(format, _ => false, headSelector, rowSelector);
+
+    public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
+        Format format,
+        Func<string, bool> lineFilter,
+        Func<TextRow, THead> headSelector,
+        Func<THead, TextRow, TRow> rowSelector)
     {
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseCsv<T>(this IAsyncEnumerable<string> lines,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
+        if (lines == null) throw new ArgumentNullException(nameof(lines));
+        if (format == null) throw new ArgumentNullException(nameof(format));
+        if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
+        if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
+        if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
 
-        public static IAsyncEnumerable<TRow> ParseCsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
-            lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+        return new DelegatingAsyncEnumerable<TRow>(_);
 
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                        Format format,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, _ => false, headSelector);
-
-        public static IAsyncEnumerable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                        Format format,
-                        Func<string, bool> lineFilter,
-                        Func<TextRow, T> headSelector) =>
-            lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
-
-        public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Format format,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
-            lines.ParseDsv(format, _ => false, headSelector, rowSelector);
-
-        public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-            Format format,
-            Func<string, bool> lineFilter,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector)
+        async IAsyncEnumerator<TRow> _(CancellationToken cancellationToken)
         {
-            if (lines == null) throw new ArgumentNullException(nameof(lines));
-            if (format == null) throw new ArgumentNullException(nameof(format));
-            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
-            if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
-            if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
+            var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
+            await using var _ = row.ConfigureAwait(false);
 
-            return new DelegatingAsyncEnumerable<TRow>(_);
+            if (!await row.MoveNextAsync().ConfigureAwait(false))
+                yield break;
 
-            async IAsyncEnumerator<TRow> _(CancellationToken cancellationToken)
-            {
-                var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
-                await using var _ = row.ConfigureAwait(false);
+            var head = headSelector(row.Current);
 
-                if (!await row.MoveNextAsync().ConfigureAwait(false))
-                    yield break;
-
-                var head = headSelector(row.Current);
-
-                while (await row.MoveNextAsync().ConfigureAwait(false))
-                    yield return rowSelector(head, row.Current);
-            }
+            while (await row.MoveNextAsync().ConfigureAwait(false))
+                yield return rowSelector(head, row.Current);
         }
+    }
 
-        public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines) =>
-            lines.ParseDsv(Format.Csv);
+    public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines) =>
+        lines.ParseDsv(Format.Csv);
 
-        public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines, Func<string, bool> lineFilter) =>
-            lines.ParseDsv(Format.Csv, lineFilter);
+    public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines, Func<string, bool> lineFilter) =>
+        lines.ParseDsv(Format.Csv, lineFilter);
 
-        public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-            Format format) =>
-            lines.ParseDsv(format, (string _) => false);
+    public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
+        Format format) =>
+        lines.ParseDsv(format, (string _) => false);
 
-        public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-            Format format, Func<string, bool> lineFilter)
+    public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
+        Format format, Func<string, bool> lineFilter)
+    {
+        if (lines == null) throw new ArgumentNullException(nameof(lines));
+        if (format == null) throw new ArgumentNullException(nameof(format));
+        if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
+
+        return new DelegatingAsyncEnumerable<TextRow>(_);
+
+        async IAsyncEnumerator<TextRow> _(CancellationToken cancellationToken)
         {
-            if (lines == null) throw new ArgumentNullException(nameof(lines));
-            if (format == null) throw new ArgumentNullException(nameof(format));
-            if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
+            var (onLine, onEoi) = Create(format, lineFilter);
 
-            return new DelegatingAsyncEnumerable<TextRow>(_);
-
-            async IAsyncEnumerator<TextRow> _(CancellationToken cancellationToken)
+            await foreach (var line in lines.WithCancellation(cancellationToken).ConfigureAwait(false))
             {
-                var (onLine, onEoi) = Create(format, lineFilter);
-
-                await foreach (var line in lines.WithCancellation(cancellationToken).ConfigureAwait(false))
-                {
-                    if (onLine(line) is { } row)
-                        yield return row;
-                }
-
-                if (onEoi() is { } e)
-                    throw e;
+                if (onLine(line) is { } row)
+                    yield return row;
             }
+
+            if (onEoi() is { } e)
+                throw e;
         }
     }
 }

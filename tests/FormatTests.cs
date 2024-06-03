@@ -14,175 +14,174 @@
 //
 #endregion
 
-namespace Dsv.Tests
+using Xunit;
+
+namespace Dsv.Tests;
+
+public sealed class FormatTests
 {
-    using Xunit;
-
-    public sealed class FormatTests
+    public sealed class CustomDelimiterFormat
     {
-        public sealed class CustomDelimiterFormat
+        readonly Format delimiterInitializedFormat = new('\0');
+
+        [Fact]
+        public void ReturnsCustomDelimiter() =>
+            Assert.Equal('\0', this.delimiterInitializedFormat.Delimiter);
+
+        [Fact]
+        public void QuoteIsQuote() =>
+            Assert.Equal('"', this.delimiterInitializedFormat.Quote);
+
+        [Fact]
+        public void EscapeIsQuote() =>
+            Assert.Equal(this.delimiterInitializedFormat.Quote, this.delimiterInitializedFormat.Escape);
+
+        [Fact]
+        public void NewLineIsLineFeed() =>
+            Assert.Equal("\n", this.delimiterInitializedFormat.NewLine);
+    }
+
+    public sealed class Csv
+    {
+        [Fact]
+        public void ReturnsCustomDelimiter() =>
+            Assert.Equal(',', Format.Csv.Delimiter);
+
+        [Fact]
+        public void QuoteIsQuote() =>
+            Assert.Equal('"', Format.Csv.Quote);
+
+        [Fact]
+        public void EscapeIsQuote() =>
+            Assert.Equal(Format.Csv.Quote, Format.Csv.Escape);
+
+        [Fact]
+        public void NewLineIsLineFeed() =>
+            Assert.Equal("\n", Format.Csv.NewLine);
+    }
+
+    public sealed class UnquotedCsv
+    {
+        [Fact]
+        public void ReturnsCustomDelimiter() =>
+            Assert.Equal(',', Format.UnquotedCsv.Delimiter);
+
+        [Fact]
+        public void QuoteIsQuote() =>
+            Assert.Null(Format.UnquotedCsv.Quote);
+
+        [Fact]
+        public void EscapeIsBackslash() =>
+            Assert.Equal('\\', Format.UnquotedCsv.Escape);
+
+        [Fact]
+        public void NewLineIsLineFeed() =>
+            Assert.Equal("\n", Format.UnquotedCsv.NewLine);
+    }
+
+    public sealed class WithDelimiter
+    {
+        [Fact]
+        public void SameDelimiterReturnsSameFormat() =>
+            Assert.Same(Format.Csv, Format.Csv.WithDelimiter(','));
+
+        [Fact]
+        public void ReturnsNewFormatWithChangedDelimiter()
         {
-            readonly Format delimiterInitializedFormat = new('\0');
+            const char delimiter = '\t';
+            var @base = Format.Csv;
+            var format = @base.WithDelimiter(delimiter);
+            Assert.NotSame(@base, format);
+            Assert.Equal(delimiter, format.Delimiter);
+            Assert.Equal(@base.Quote, format.Quote);
+            Assert.Equal(@base.Escape, format.Escape);
+            Assert.Equal(@base.NewLine, format.NewLine);
+        }
+    }
 
-            [Fact]
-            public void ReturnsCustomDelimiter() =>
-                Assert.Equal('\0', this.delimiterInitializedFormat.Delimiter);
+    public sealed class WithQuote
+    {
+        [Fact]
+        public void SameDelimiterReturnsSameFormat() =>
+            Assert.Same(Format.Csv, Format.Csv.WithQuote('"'));
 
-            [Fact]
-            public void QuoteIsQuote() =>
-                Assert.Equal('"', this.delimiterInitializedFormat.Quote);
+        [Fact]
+        public void ReturnsNewFormatWithChangedDelimiter()
+        {
+            const char quote = '\'';
+            var @base = Format.Csv;
+            var format = @base.WithQuote(quote);
+            Assert.NotSame(@base, format);
+            Assert.Equal(@base.Delimiter, format.Delimiter);
+            Assert.Equal(quote, format.Quote);
+            Assert.Equal(@base.Escape, format.Escape);
+            Assert.Equal(@base.NewLine, format.NewLine);
+        }
+    }
 
-            [Fact]
-            public void EscapeIsQuote() =>
-                Assert.Equal(this.delimiterInitializedFormat.Quote, this.delimiterInitializedFormat.Escape);
+    public sealed class WithEscape
+    {
+        [Fact]
+        public void SameEscapeReturnsSameFormat() =>
+            Assert.Same(Format.Csv, Format.Csv.WithEscape('"'));
 
-            [Fact]
-            public void NewLineIsLineFeed() =>
-                Assert.Equal("\n", this.delimiterInitializedFormat.NewLine);
+        [Fact]
+        public void ReturnsNewFormatWithChangedEscape()
+        {
+            const char escape = '\\';
+            var @base = Format.Csv;
+            var format = @base.WithEscape(escape);
+            Assert.NotSame(@base, format);
+            Assert.Equal(@base.Delimiter, format.Delimiter);
+            Assert.Equal(@base.Quote, format.Quote);
+            Assert.Equal(escape, format.Escape);
+            Assert.Equal(@base.NewLine, format.NewLine);
+        }
+    }
+
+    public sealed class WithNewLine
+    {
+        [Fact]
+        public void SameNewLineReturnsSameFormat() =>
+            Assert.Same(Format.Csv, Format.Csv.WithNewLine("\n"));
+
+        [Fact]
+        public void ReturnsNewFormatWithChangedNewLine()
+        {
+            const string crlf = "\r\n";
+            var @base = Format.Csv;
+            var format = @base.WithNewLine(crlf);
+            Assert.NotSame(@base, format);
+            Assert.Equal(@base.Delimiter, format.Delimiter);
+            Assert.Equal(@base.Quote, format.Quote);
+            Assert.Equal(@base.Escape, format.Escape);
+            Assert.Equal(crlf, format.NewLine);
+        }
+    }
+
+    public sealed class Unquoted
+    {
+        [Fact]
+        public void ReturnsSameFormatWhenAlreadyUnquoted()
+        {
+            var @base = Format.Csv.Unquoted();
+            Assert.Same(@base, @base.Unquoted());
         }
 
-        public sealed class Csv
+        [Fact]
+        public void ReturnsNewFormatWhenQuotedBefore()
         {
-            [Fact]
-            public void ReturnsCustomDelimiter() =>
-                Assert.Equal(',', Format.Csv.Delimiter);
-
-            [Fact]
-            public void QuoteIsQuote() =>
-                Assert.Equal('"', Format.Csv.Quote);
-
-            [Fact]
-            public void EscapeIsQuote() =>
-                Assert.Equal(Format.Csv.Quote, Format.Csv.Escape);
-
-            [Fact]
-            public void NewLineIsLineFeed() =>
-                Assert.Equal("\n", Format.Csv.NewLine);
+            var @base = Format.Csv;
+            Assert.NotSame(@base, @base.Unquoted());
         }
 
-        public sealed class UnquotedCsv
+        [Fact]
+        public void SetsEscapeToNullChar()
         {
-            [Fact]
-            public void ReturnsCustomDelimiter() =>
-                Assert.Equal(',', Format.UnquotedCsv.Delimiter);
-
-            [Fact]
-            public void QuoteIsQuote() =>
-                Assert.Null(Format.UnquotedCsv.Quote);
-
-            [Fact]
-            public void EscapeIsBackslash() =>
-                Assert.Equal('\\', Format.UnquotedCsv.Escape);
-
-            [Fact]
-            public void NewLineIsLineFeed() =>
-                Assert.Equal("\n", Format.UnquotedCsv.NewLine);
-        }
-
-        public sealed class WithDelimiter
-        {
-            [Fact]
-            public void SameDelimiterReturnsSameFormat() =>
-                Assert.Same(Format.Csv, Format.Csv.WithDelimiter(','));
-
-            [Fact]
-            public void ReturnsNewFormatWithChangedDelimiter()
-            {
-                const char delimiter = '\t';
-                var @base = Format.Csv;
-                var format = @base.WithDelimiter(delimiter);
-                Assert.NotSame(@base, format);
-                Assert.Equal(delimiter, format.Delimiter);
-                Assert.Equal(@base.Quote, format.Quote);
-                Assert.Equal(@base.Escape, format.Escape);
-                Assert.Equal(@base.NewLine, format.NewLine);
-            }
-        }
-
-        public sealed class WithQuote
-        {
-            [Fact]
-            public void SameDelimiterReturnsSameFormat() =>
-                Assert.Same(Format.Csv, Format.Csv.WithQuote('"'));
-
-            [Fact]
-            public void ReturnsNewFormatWithChangedDelimiter()
-            {
-                const char quote = '\'';
-                var @base = Format.Csv;
-                var format = @base.WithQuote(quote);
-                Assert.NotSame(@base, format);
-                Assert.Equal(@base.Delimiter, format.Delimiter);
-                Assert.Equal(quote, format.Quote);
-                Assert.Equal(@base.Escape, format.Escape);
-                Assert.Equal(@base.NewLine, format.NewLine);
-            }
-        }
-
-        public sealed class WithEscape
-        {
-            [Fact]
-            public void SameEscapeReturnsSameFormat() =>
-                Assert.Same(Format.Csv, Format.Csv.WithEscape('"'));
-
-            [Fact]
-            public void ReturnsNewFormatWithChangedEscape()
-            {
-                const char escape = '\\';
-                var @base = Format.Csv;
-                var format = @base.WithEscape(escape);
-                Assert.NotSame(@base, format);
-                Assert.Equal(@base.Delimiter, format.Delimiter);
-                Assert.Equal(@base.Quote, format.Quote);
-                Assert.Equal(escape, format.Escape);
-                Assert.Equal(@base.NewLine, format.NewLine);
-            }
-        }
-
-        public sealed class WithNewLine
-        {
-            [Fact]
-            public void SameNewLineReturnsSameFormat() =>
-                Assert.Same(Format.Csv, Format.Csv.WithNewLine("\n"));
-
-            [Fact]
-            public void ReturnsNewFormatWithChangedNewLine()
-            {
-                const string crlf = "\r\n";
-                var @base = Format.Csv;
-                var format = @base.WithNewLine(crlf);
-                Assert.NotSame(@base, format);
-                Assert.Equal(@base.Delimiter, format.Delimiter);
-                Assert.Equal(@base.Quote, format.Quote);
-                Assert.Equal(@base.Escape, format.Escape);
-                Assert.Equal(crlf, format.NewLine);
-            }
-        }
-
-        public sealed class Unquoted
-        {
-            [Fact]
-            public void ReturnsSameFormatWhenAlreadyUnquoted()
-            {
-                var @base = Format.Csv.Unquoted();
-                Assert.Same(@base, @base.Unquoted());
-            }
-
-            [Fact]
-            public void ReturnsNewFormatWhenQuotedBefore()
-            {
-                var @base = Format.Csv;
-                Assert.NotSame(@base, @base.Unquoted());
-            }
-
-            [Fact]
-            public void SetsEscapeToNullChar()
-            {
-                var @base = Format.Csv;
-                var unquoted = @base.Unquoted();
-                Assert.Equal('\\', unquoted.Escape);
-                Assert.NotEqual(unquoted.Escape, @base.Escape);
-            }
+            var @base = Format.Csv;
+            var unquoted = @base.Unquoted();
+            Assert.Equal('\\', unquoted.Escape);
+            Assert.NotEqual(unquoted.Escape, @base.Escape);
         }
     }
 }
