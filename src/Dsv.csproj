@@ -15,6 +15,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageTags>dsv csv tsv text</PackageTags>
     <PackageLicenseFile>COPYING.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageOutputPath>..\dist</PackageOutputPath>
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
@@ -46,6 +47,7 @@
 
   <ItemGroup>
     <None Include="..\COPYING.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+    <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)" />
   </ItemGroup>
 
 </Project>
