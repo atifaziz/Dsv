@@ -15,6 +15,7 @@
 #endregion
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Dsv.Reactive;
 
 namespace Dsv
@@ -30,6 +31,11 @@ namespace Dsv
                                   Func<TextRow, THead> headSelector,
                                   Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+
+        [Experimental("DSV001")]
+        public static IObservable<T> ParseCsv<T>(this IObservable<string> lines,
+                                                 Func<TextRow, Func<TextRow, T>> selector) =>
+            lines.ParseDsv(Format.Csv, selector);
 
         public static IObservable<(T Header, TextRow Row)>
             ParseDsv<T>(this IObservable<string> lines, Format format,
@@ -47,6 +53,17 @@ namespace Dsv
                                   Func<TextRow, THead> headSelector,
                                   Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(format, _ => false, headSelector, rowSelector);
+
+        [Experimental("DSV001")]
+        public static IObservable<T> ParseDsv<T>(this IObservable<string> lines, Format format,
+                                                 Func<TextRow, Func<TextRow, T>> selector) =>
+            lines.ParseDsv(format, _ => false, selector);
+
+        [Experimental("DSV001")]
+        public static IObservable<T> ParseDsv<T>(this IObservable<string> lines, Format format,
+                                                 Func<string, bool> lineFilter,
+                                                 Func<TextRow, Func<TextRow, T>> selector) =>
+            lines.ParseDsv(format, lineFilter, selector, (head, row) => head(row));
 
         public static IObservable<TRow>
             ParseDsv<THead, TRow>(this IObservable<string> lines, Format format,

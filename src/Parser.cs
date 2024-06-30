@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Dsv
@@ -65,6 +66,9 @@ namespace Dsv
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         readonly string[]? fields;
+
+        [Experimental("DSV001")]
+        public static readonly Func<TextRow, TextRow> Reader = static row => row;
 
         internal TextRow(int lineNumber, string[] fields)
         {

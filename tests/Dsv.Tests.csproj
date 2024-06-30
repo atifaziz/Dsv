@@ -18,6 +18,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Finq" Version="1.0.0-alpha-01" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="morelinq" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dsv;
 
@@ -30,6 +31,11 @@ static partial class Parser
                               Func<TextRow, THead> headSelector,
                               Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(Format.Csv, headSelector, rowSelector);
+
+    [Experimental("DSV001")]
+    public static IEnumerable<T> ParseCsv<T>(this IEnumerable<string> lines,
+                                             Func<TextRow, Func<TextRow, T>> selector) =>
+        lines.ParseDsv(Format.Csv, selector);
 
     public static IEnumerable<(T Header, TextRow Row)>
         ParseDsv<T>(this IEnumerable<string> lines, Format format,
@@ -47,6 +53,19 @@ static partial class Parser
                               Func<TextRow, THead> headSelector,
                               Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(format, _ => false, headSelector, rowSelector);
+
+    [Experimental("DSV001")]
+    public static IEnumerable<T> ParseDsv<T>(this IEnumerable<string> lines,
+                                             Format format,
+                                             Func<TextRow, Func<TextRow, T>> selector) =>
+        lines.ParseDsv(format, _ => false, selector);
+
+    [Experimental("DSV001")]
+    public static IEnumerable<T> ParseDsv<T>(this IEnumerable<string> lines,
+                                             Format format,
+                                             Func<string, bool> lineFilter,
+                                             Func<TextRow, Func<TextRow, T>> selector) =>
+        lines.ParseDsv(format, lineFilter, selector, (head, row) => head(row));
 
     public static IEnumerable<TRow>
         ParseDsv<THead, TRow>(this IEnumerable<string> lines, Format format,

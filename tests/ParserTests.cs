@@ -23,6 +23,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Finq;
 using Mannex.Text.RegularExpressions;
 using MoreLinq;
 using Xunit;
@@ -133,6 +134,49 @@ public class ParserTests
                     headSelector: delegate { throw new NotImplementedException(); },
                     rowSelector : delegate { throw new NotImplementedException(); });
         }
+
+#pragma warning disable DSV001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
+
+        [Fact]
+        public void ParseWithReader()
+        {
+            var reader =
+                from hr in TextRow.Reader
+                select new
+                {
+                    Name = hr.GetFirstIndex("Name", StringComparison.OrdinalIgnoreCase),
+                    Age  = hr.GetFirstIndex("Age", StringComparison.OrdinalIgnoreCase),
+                    City = hr.GetFirstIndex("City", StringComparison.OrdinalIgnoreCase),
+                }
+                into hr
+                select
+                    from dr in TextRow.Reader
+                    select new
+                    {
+                        Name = dr[hr.Name],
+                        Age  = int.Parse(dr[hr.Age], NumberStyles.None, CultureInfo.InvariantCulture),
+                        City = dr[hr.City]
+                    };
+
+            const string csv = """
+                Name,Age,City
+                Alice,25,New York
+                Bob,30,Los Angeles
+                Charlie,35,Chicago
+                """;
+
+            var result = csv.SplitIntoLines()
+                            .ParseDsv(Format.Csv, _ => false, reader);
+
+            Assert.Equal([
+                             new { Name = "Alice"  , Age = 25, City = "New York"    },
+                             new { Name = "Bob"    , Age = 30, City = "Los Angeles" },
+                             new { Name = "Charlie", Age = 35, City = "Chicago"     },
+                         ],
+                         result);
+        }
+
+#pragma warning restore DSV001
     }
 
     #if !NO_ASYNC_STREAM
