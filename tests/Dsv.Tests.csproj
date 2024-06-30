@@ -10,10 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\src\DelegatingAsyncEnumerable.cs" Link="DelegatingAsyncEnumerable.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Tests.md" />
   </ItemGroup>
 

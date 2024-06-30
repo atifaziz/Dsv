@@ -18,6 +18,7 @@
 
     using System;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -64,9 +65,12 @@ static partial class Parser
         if (headSelector == null) throw new ArgumentNullException(nameof(headSelector));
         if (rowSelector == null) throw new ArgumentNullException(nameof(rowSelector));
 
-        return new DelegatingAsyncEnumerable<TRow>(_);
+        return Iterator(lines, format, lineFilter, headSelector, rowSelector);
 
-        async IAsyncEnumerator<TRow> _(CancellationToken cancellationToken)
+        static async IAsyncEnumerable<TRow>
+            Iterator(IAsyncEnumerable<string> lines, Format format, Func<string, bool> lineFilter,
+                     Func<TextRow, THead> headSelector, Func<THead, TextRow, TRow> rowSelector,
+                     [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var row = lines.ParseDsv(format, lineFilter).GetAsyncEnumerator(cancellationToken);
             await using var _ = row.ConfigureAwait(false);
@@ -100,9 +104,11 @@ static partial class Parser
         if (format == null) throw new ArgumentNullException(nameof(format));
         if (lineFilter == null) throw new ArgumentNullException(nameof(lineFilter));
 
-        return new DelegatingAsyncEnumerable<TextRow>(_);
+        return Iterator(lines, format, lineFilter);
 
-        async IAsyncEnumerator<TextRow> _(CancellationToken cancellationToken)
+        static async IAsyncEnumerable<TextRow>
+            Iterator(IAsyncEnumerable<string> lines, Format format, Func<string, bool> lineFilter,
+                     [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var (onLine, onEoi) = Create(format, lineFilter);
 

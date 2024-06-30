@@ -204,7 +204,9 @@ static partial class TextRowExtensions
     {
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
-        return _(); IEnumerable<T> _()
+        return Iterator(row, predicate);
+
+        static IEnumerable<T> Iterator(TextRow row, Func<string, int, (bool, T)> predicate)
         {
             for (var i = 0; i < row.Count; i++)
             {

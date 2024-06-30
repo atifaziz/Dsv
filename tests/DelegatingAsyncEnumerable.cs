@@ -14,13 +14,11 @@
 //
 #endregion
 
-#if !NO_ASYNC_STREAM
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Dsv;
+namespace Dsv.Tests;
 
 sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerator<T>> delegatee) :
     IAsyncEnumerable<T>
@@ -30,5 +28,3 @@ sealed class DelegatingAsyncEnumerable<T>(Func<CancellationToken, IAsyncEnumerat
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
         this.delegatee(cancellationToken);
 }
-
-#endif // !NO_ASYNC_STREAM
