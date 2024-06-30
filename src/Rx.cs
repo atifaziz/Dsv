@@ -22,39 +22,37 @@ namespace Dsv
     partial class Parser
     {
         public static IObservable<(T Header, TextRow Row)>
-            ParseCsv<T>(this IObservable<string> lines,
-                        Func<TextRow, T> headSelector) =>
+            ParseCsv<T>(this IObservable<string> lines, Func<TextRow, T> headSelector) =>
             lines.ParseCsv(headSelector, ValueTuple.Create);
 
-        public static IObservable<TRow> ParseCsv<THead, TRow>(this IObservable<string> lines,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
+        public static IObservable<TRow>
+            ParseCsv<THead, TRow>(this IObservable<string> lines,
+                                  Func<TextRow, THead> headSelector,
+                                  Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(Format.Csv, headSelector, rowSelector);
 
         public static IObservable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IObservable<string> lines,
-                        Format format,
+            ParseDsv<T>(this IObservable<string> lines, Format format,
                         Func<TextRow, T> headSelector) =>
             lines.ParseDsv(format, _ => false, headSelector);
 
         public static IObservable<(T Header, TextRow Row)>
-            ParseDsv<T>(this IObservable<string> lines,
-                        Format format,
+            ParseDsv<T>(this IObservable<string> lines, Format format,
                         Func<string, bool> lineFilter,
                         Func<TextRow, T> headSelector) =>
             lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
 
-        public static IObservable<TRow> ParseDsv<THead, TRow>(this IObservable<string> lines,
-            Format format,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector) =>
+        public static IObservable<TRow>
+            ParseDsv<THead, TRow>(this IObservable<string> lines, Format format,
+                                  Func<TextRow, THead> headSelector,
+                                  Func<THead, TextRow, TRow> rowSelector) =>
             lines.ParseDsv(format, _ => false, headSelector, rowSelector);
 
-        public static IObservable<TRow> ParseDsv<THead, TRow>(this IObservable<string> lines,
-            Format format,
-            Func<string, bool> lineFilter,
-            Func<TextRow, THead> headSelector,
-            Func<THead, TextRow, TRow> rowSelector)
+        public static IObservable<TRow>
+            ParseDsv<THead, TRow>(this IObservable<string> lines, Format format,
+                                  Func<string, bool> lineFilter,
+                                  Func<TextRow, THead> headSelector,
+                                  Func<THead, TextRow, TRow> rowSelector)
         {
             if (lines == null) throw new ArgumentNullException(nameof(lines));
             if (format == null) throw new ArgumentNullException(nameof(format));
@@ -66,37 +64,32 @@ namespace Dsv
             {
                 (bool, THead) head = default;
 
-                return lines
-                        .ParseDsv(format, lineFilter)
-                        .Subscribe(row =>
-                            {
-                                if (head is (true, { } someHead))
-                                    o.OnNext(rowSelector(someHead, row));
-                                else
-                                    head = (true, headSelector(row));
-                            },
-                            o.OnError,
-                            o.OnCompleted);
+                return lines.ParseDsv(format, lineFilter)
+                            .Subscribe(row =>
+                                       {
+                                           if (head is (true, { } someHead))
+                                               o.OnNext(rowSelector(someHead, row));
+                                           else
+                                               head = (true, headSelector(row));
+                                       },
+                                       o.OnError,
+                                       o.OnCompleted);
             });
         }
 
-        public static IObservable<TextRow>
-            ParseCsv(this IObservable<string> lines) =>
+        public static IObservable<TextRow> ParseCsv(this IObservable<string> lines) =>
                 lines.ParseDsv(Format.Csv);
 
-        public static IObservable<TextRow>
-            ParseCsv(this IObservable<string> lines,
-                     Func<string, bool> lineFilter) =>
+        public static IObservable<TextRow> ParseCsv(this IObservable<string> lines,
+                                                    Func<string, bool> lineFilter) =>
             lines.ParseDsv(Format.Csv, lineFilter);
 
         public static IObservable<TextRow>
             ParseDsv(this IObservable<string> lines, Format format) =>
                 lines.ParseDsv(format, (string _) => false);
 
-        public static IObservable<TextRow>
-            ParseDsv(this IObservable<string> lines,
-                     Format format,
-                     Func<string, bool> lineFilter)
+        public static IObservable<TextRow> ParseDsv(this IObservable<string> lines, Format format,
+                                                    Func<string, bool> lineFilter)
         {
             if (lines == null) throw new ArgumentNullException(nameof(lines));
             if (format == null) throw new ArgumentNullException(nameof(format));

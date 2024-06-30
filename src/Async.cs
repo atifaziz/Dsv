@@ -26,39 +26,37 @@ namespace Dsv;
 static partial class Parser
 {
     public static IAsyncEnumerable<(T Header, TextRow Row)>
-        ParseCsv<T>(this IAsyncEnumerable<string> lines,
-                    Func<TextRow, T> headSelector) =>
+        ParseCsv<T>(this IAsyncEnumerable<string> lines, Func<TextRow, T> headSelector) =>
         lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
 
-    public static IAsyncEnumerable<TRow> ParseCsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector) =>
+    public static IAsyncEnumerable<TRow>
+        ParseCsv<THead, TRow>(this IAsyncEnumerable<string> lines,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(Format.Csv, headSelector, rowSelector);
 
     public static IAsyncEnumerable<(T Header, TextRow Row)>
-        ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                    Format format,
+        ParseDsv<T>(this IAsyncEnumerable<string> lines, Format format,
                     Func<TextRow, T> headSelector) =>
         lines.ParseDsv(format, _ => false, headSelector);
 
     public static IAsyncEnumerable<(T Header, TextRow Row)>
-        ParseDsv<T>(this IAsyncEnumerable<string> lines,
-                    Format format,
+        ParseDsv<T>(this IAsyncEnumerable<string> lines, Format format,
                     Func<string, bool> lineFilter,
                     Func<TextRow, T> headSelector) =>
         lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
 
-    public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-        Format format,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector) =>
+    public static IAsyncEnumerable<TRow>
+        ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines, Format format,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(format, _ => false, headSelector, rowSelector);
 
-    public static IAsyncEnumerable<TRow> ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines,
-        Format format,
-        Func<string, bool> lineFilter,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector)
+    public static IAsyncEnumerable<TRow>
+        ParseDsv<THead, TRow>(this IAsyncEnumerable<string> lines, Format format,
+                              Func<string, bool> lineFilter,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector)
     {
         if (lines == null) throw new ArgumentNullException(nameof(lines));
         if (format == null) throw new ArgumentNullException(nameof(format));
@@ -86,15 +84,17 @@ static partial class Parser
     public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines) =>
         lines.ParseDsv(Format.Csv);
 
-    public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines, Func<string, bool> lineFilter) =>
+    public static IAsyncEnumerable<TextRow> ParseCsv(this IAsyncEnumerable<string> lines,
+                                                     Func<string, bool> lineFilter) =>
         lines.ParseDsv(Format.Csv, lineFilter);
 
     public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-        Format format) =>
+                                                     Format format) =>
         lines.ParseDsv(format, (string _) => false);
 
     public static IAsyncEnumerable<TextRow> ParseDsv(this IAsyncEnumerable<string> lines,
-        Format format, Func<string, bool> lineFilter)
+                                                     Format format,
+                                                     Func<string, bool> lineFilter)
     {
         if (lines == null) throw new ArgumentNullException(nameof(lines));
         if (format == null) throw new ArgumentNullException(nameof(format));

@@ -22,39 +22,37 @@ namespace Dsv;
 static partial class Parser
 {
     public static IEnumerable<(T Header, TextRow Row)>
-        ParseCsv<T>(this IEnumerable<string> lines,
-                    Func<TextRow, T> headSelector) =>
+        ParseCsv<T>(this IEnumerable<string> lines, Func<TextRow, T> headSelector) =>
         lines.ParseDsv(Format.Csv, headSelector, ValueTuple.Create);
 
-    public static IEnumerable<TRow> ParseCsv<THead, TRow>(this IEnumerable<string> lines,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector) =>
+    public static IEnumerable<TRow>
+        ParseCsv<THead, TRow>(this IEnumerable<string> lines,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(Format.Csv, headSelector, rowSelector);
 
     public static IEnumerable<(T Header, TextRow Row)>
-        ParseDsv<T>(this IEnumerable<string> lines,
-                    Format format,
+        ParseDsv<T>(this IEnumerable<string> lines, Format format,
                     Func<TextRow, T> headSelector) =>
         lines.ParseDsv(format, _ => false, headSelector);
 
     public static IEnumerable<(T Header, TextRow Row)>
-        ParseDsv<T>(this IEnumerable<string> lines,
-                    Format format,
+        ParseDsv<T>(this IEnumerable<string> lines, Format format,
                     Func<string, bool> lineFilter,
                     Func<TextRow, T> headSelector) =>
         lines.ParseDsv(format, lineFilter, headSelector, ValueTuple.Create);
 
-    public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
-        Format format,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector) =>
+    public static IEnumerable<TRow>
+        ParseDsv<THead, TRow>(this IEnumerable<string> lines, Format format,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector) =>
         lines.ParseDsv(format, _ => false, headSelector, rowSelector);
 
-    public static IEnumerable<TRow> ParseDsv<THead, TRow>(this IEnumerable<string> lines,
-        Format format,
-        Func<string, bool> lineFilter,
-        Func<TextRow, THead> headSelector,
-        Func<THead, TextRow, TRow> rowSelector)
+    public static IEnumerable<TRow>
+        ParseDsv<THead, TRow>(this IEnumerable<string> lines, Format format,
+                              Func<string, bool> lineFilter,
+                              Func<TextRow, THead> headSelector,
+                              Func<THead, TextRow, TRow> rowSelector)
     {
         if (lines == null) throw new ArgumentNullException(nameof(lines));
         if (format == null) throw new ArgumentNullException(nameof(format));
@@ -93,12 +91,11 @@ static partial class Parser
     /// of lines.
     /// </summary>
 
-    public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
-        Format format) =>
+    public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines, Format format) =>
         lines.ParseDsv(format, (string _) => false);
 
-    public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines,
-        Format format, Func<string, bool> lineFilter)
+    public static IEnumerable<TextRow> ParseDsv(this IEnumerable<string> lines, Format format,
+                                                Func<string, bool> lineFilter)
     {
         if (lines == null) throw new ArgumentNullException(nameof(lines));
         if (format == null) throw new ArgumentNullException(nameof(format));

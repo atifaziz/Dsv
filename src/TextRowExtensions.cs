@@ -28,8 +28,7 @@ static partial class TextRowExtensions
     public static int GetFirstIndex(this TextRow row, string sought) =>
         row.GetFirstIndex(sought, StringComparison.Ordinal);
 
-    public static int GetFirstIndex(this TextRow row,
-        string sought, StringComparison comparison) =>
+    public static int GetFirstIndex(this TextRow row, string sought, StringComparison comparison) =>
         row.GetFirstIndex(s => string.Equals(s, sought, comparison));
 
     public static int GetFirstIndex(this TextRow row, Func<string, bool> predicate) =>
@@ -40,8 +39,7 @@ static partial class TextRowExtensions
     public static int? FindFirstIndex(this TextRow row, string sought) =>
         row.FindFirstIndex(sought, StringComparison.Ordinal);
 
-    public static int? FindFirstIndex(this TextRow row,
-        string sought, StringComparison comparison) =>
+    public static int? FindFirstIndex(this TextRow row, string sought, StringComparison comparison) =>
         row.FindFirstIndex(s => string.Equals(s, sought, comparison));
 
     public static int? FindFirstIndex(this TextRow row, Func<string, bool> predicate)
@@ -69,31 +67,28 @@ static partial class TextRowExtensions
 
     [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
     public static T FindFirstField<T>(this TextRow row, string sought,
-        Func<string, int, T> someSelector) =>
+                                      Func<string, int, T> someSelector) =>
         row.FindFirstField(sought, someSelector, default(T)!);
 
     public static T FindFirstField<T>(this TextRow row, string sought,
-        Func<string, int, T> someSelector, T none) =>
+                                      Func<string, int, T> someSelector, T none) =>
         row.FindFirstField(sought, someSelector, () => none);
 
     public static T FindFirstField<T>(this TextRow row, string sought,
-        Func<string, int, T> someSelector, Func<T> noneSelector) =>
+                                      Func<string, int, T> someSelector, Func<T> noneSelector) =>
         row.FindFirstField(sought, StringComparison.Ordinal, someSelector, noneSelector);
 
     [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
-    public static T FindFirstField<T>(this TextRow row,
-        string sought, StringComparison comparison,
-        Func<string, int, T> someSelector) =>
+    public static T FindFirstField<T>(this TextRow row, string sought, StringComparison comparison,
+                                      Func<string, int, T> someSelector) =>
         row.FindFirstField(sought, comparison, someSelector, default(T)!);
 
-    public static T FindFirstField<T>(this TextRow row,
-        string sought, StringComparison comparison,
-        Func<string, int, T> someSelector, T none) =>
+    public static T FindFirstField<T>(this TextRow row, string sought, StringComparison comparison,
+                                      Func<string, int, T> someSelector, T none) =>
         row.FindFirstField(sought, comparison, someSelector, () => none);
 
-    public static T FindFirstField<T>(this TextRow row,
-        string sought, StringComparison comparison,
-        Func<string, int, T> someSelector, Func<T> noneSelector)
+    public static T FindFirstField<T>(this TextRow row, string sought, StringComparison comparison,
+                                      Func<string, int, T> someSelector, Func<T> noneSelector)
     {
         using var e = row.Find((s, i) => string.Equals(sought, s, comparison)
                                        ? (true, someSelector(s, i))
@@ -108,12 +103,12 @@ static partial class TextRowExtensions
 
     // Methods to get the first matching field; otherwise throw
 
-    public static (string Field, int Index) GetFirstField(this TextRow row,
-        string sought, StringComparison comparison) =>
+    public static (string Field, int Index)
+        GetFirstField(this TextRow row, string sought, StringComparison comparison) =>
         row.GetFirstField(sought, comparison, ValueTuple.Create);
 
-    public static T GetFirstField<T>(this TextRow row,
-        string sought, StringComparison comparison, Func<string, int, T> resultSelector) =>
+    public static T GetFirstField<T>(this TextRow row, string sought, StringComparison comparison,
+                                     Func<string, int, T> resultSelector) =>
         row.Find((s, i) => string.Equals(sought, s, comparison)
                          ? (true, resultSelector(s, i))
                          : default)
@@ -123,32 +118,31 @@ static partial class TextRowExtensions
     // return an alternative when none match.
 
     [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
-    public static T FindFirstMatch<T>(this TextRow row,
-        string pattern, Func<string, int, Match, T> someSelector) =>
+    public static T FindFirstMatch<T>(this TextRow row, string pattern,
+                                      Func<string, int, Match, T> someSelector) =>
         row.FindFirstMatch(pattern, someSelector, default(T)!);
 
-    public static T FindFirstMatch<T>(this TextRow row,
-        string pattern, Func<string, int, Match, T> someSelector, T none) =>
+    public static T FindFirstMatch<T>(this TextRow row, string pattern,
+                                      Func<string, int, Match, T> someSelector, T none) =>
         row.FindFirstMatch(pattern, RegexOptions.None, someSelector, none);
 
     [Obsolete("Use the overload that allows specifying a default result when the field is not found.")]
-    public static T FindFirstMatch<T>(this TextRow row,
-        string pattern, RegexOptions options,
-        Func<string, int, Match, T> someSelector) =>
+    public static T FindFirstMatch<T>(this TextRow row, string pattern, RegexOptions options,
+                                      Func<string, int, Match, T> someSelector) =>
         row.FindFirstMatch(pattern, options, someSelector, default(T)!);
 
-    public static T FindFirstMatch<T>(this TextRow row,
-        string pattern, RegexOptions options,
-        Func<string, int, Match, T> someSelector, T none) =>
+    public static T FindFirstMatch<T>(this TextRow row, string pattern, RegexOptions options,
+                                      Func<string, int, Match, T> someSelector, T none) =>
         row.FindFirstMatch(pattern, options, someSelector, () => none);
 
     public static T FindFirstMatch<T>(this TextRow row, string pattern,
-        Func<string, int, Match, T> someSelector, Func<T> noneSelector) =>
+                                      Func<string, int, Match, T> someSelector,
+                                      Func<T> noneSelector) =>
         row.FindFirstMatch(pattern, RegexOptions.None, someSelector, noneSelector);
 
-    public static T FindFirstMatch<T>(this TextRow row,
-        string pattern, RegexOptions options,
-        Func<string, int, Match, T> someSelector, Func<T> noneSelector)
+    public static T FindFirstMatch<T>(this TextRow row, string pattern, RegexOptions options,
+                                      Func<string, int, Match, T> someSelector,
+                                      Func<T> noneSelector)
     {
         using var e = row.Match(pattern, options, someSelector).GetEnumerator();
         return e.MoveNext()
@@ -187,13 +181,12 @@ static partial class TextRowExtensions
         Match(this TextRow row, string pattern, RegexOptions options) =>
         row.Match(pattern, options, (s, i, _) => (s, i));
 
-    public static IEnumerable<T> Match<T>(this TextRow row,
-        string pattern, Func<string, int, Match, T> resultSelector) =>
+    public static IEnumerable<T> Match<T>(this TextRow row, string pattern,
+                                          Func<string, int, Match, T> resultSelector) =>
         Match(row, pattern, RegexOptions.None, resultSelector);
 
-    public static IEnumerable<T> Match<T>(this TextRow row,
-        string pattern, RegexOptions options,
-        Func<string, int, Match, T> resultSelector) =>
+    public static IEnumerable<T> Match<T>(this TextRow row, string pattern, RegexOptions options,
+                                          Func<string, int, Match, T> resultSelector) =>
         from e in row.Find((s, i) =>
         {
             var m = Regex.Match(s, pattern, options);
@@ -207,8 +200,7 @@ static partial class TextRowExtensions
         Find(this TextRow row, Func<string, int, bool> predicate) =>
         row.Find((s, i) => predicate(s, i) ? (true, (s, i)) : default);
 
-    public static IEnumerable<T> Find<T>(this TextRow row,
-        Func<string, int, (bool, T)> predicate)
+    public static IEnumerable<T> Find<T>(this TextRow row, Func<string, int, (bool, T)> predicate)
     {
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
