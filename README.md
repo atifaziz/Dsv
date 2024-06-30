@@ -1,7 +1,6 @@
 # Dsv
 
 [![Build Status][win-build-badge]][win-builds]
-[![Build Status][nix-build-badge]][nix-builds]
 [![NuGet][nuget-badge]][nuget-pkg]
 [![MyGet][myget-badge]][edge-pkgs]
 
@@ -28,10 +27,8 @@ Features:
 See the [parser test cases](tests/Tests.md) for how DSV data is handled.
 
 
-[win-build-badge]: https://img.shields.io/appveyor/ci/raboof/dsv/master.svg?label=windows
+[win-build-badge]: https://img.shields.io/appveyor/ci/raboof/dsv/master.svg
 [win-builds]: https://ci.appveyor.com/project/raboof/dsv
-[nix-build-badge]: https://img.shields.io/travis/atifaziz/Dsv/master.svg?label=linux
-[nix-builds]: https://travis-ci.org/atifaziz/Dsv
 [myget-badge]: https://img.shields.io/myget/raboof/vpre/Dsv.svg?label=myget
 [edge-pkgs]: https://www.myget.org/feed/raboof/package/nuget/Dsv
 [nuget-badge]: https://img.shields.io/nuget/v/Dsv.svg
